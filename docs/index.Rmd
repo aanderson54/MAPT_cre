@@ -1,0 +1,2800 @@
+---
+title: "MAPT_plotgardener"
+author: "Ashlyn Anderson"
+date: "7/7/2022"
+output: html_document
+---
+
+
+
+MARK method:
+-individual rep
+  /cluster/home/mmackiewicz/for_nick/juicer_gluta_neurons/Rep1_Lib1/lsf.out
+-mega
+  "/gpfs/gpfs1/home/mmackiewicz/.lsbatch/1617757697.5998313.shell: line 18: [: : integer expression expected"
+  /cluster/home/mmackiewicz/for_nick/juicer_gluta_neurons/mega/debug/hic0.err
+  same error as my script
+  USES LSF SCRIPT. NOT COMPATABLE WITH CPU OUTPUT
+-mega_mark: 
+  same unnormalized data issue. does not help
+
+CPU2/mega.sh:
+-java.lang.NumberFormatException: For input string: "99% - 1%"
+
+
+
+
+
+
+Gluta HiC:
+  has same errors as the captureC when I run. But there are hiccups and mustache loops called.
+  Lindsay's hiccups script calls from this file:
+    /cluster/home/mmackiewicz/for_nick/juicer_gluta_neurons/mega/aligned/inter.hic
+    CONDA: /cluster/home/lrizzardi/miniconda3/envs/mustache
+
+Gluta CapC:
+
+
+
+GABA CapC:
+  Mustache On mega inter.hic:
+    File doesn't have the given chr_chr map
+    File did not contain KR normalization vectors for one or both chromosomes at 5000 BP
+
+
+
+
+
+# CaptureC
+
+
+```{bash}
+#lsf version
+
+#cpu version
+module load cluster/bwa/0.7.17 
+module load cluster/samtools/1.9
+#module load cluster/java/11.0.2 
+export PATH=$PATH:/usr/bin/java
+export PATH=$PATH:/usr/local/cuda/bin
+
+
+python generate_site_positions.py Arima chr17_hg38
+```
+
+```{bash}
+cd Rep1
+/cluster/home/mmackiewicz/opt/juicer/scripts/juicer.sh -g hg38  -a iCell_Gluta_Neuron_Rep1_Lib1 -p /cluster/home/mmackiewicz/opt/juicer/references/hg38.chrom.sizes -y /cluster/home/mmackiewicz/opt/juicer/restriction_sites/hg38_Arima.txt -z /cluster/home/mmackiewicz/opt/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D /cluster/home/mmackiewicz/opt/juicer
+
+
+cd Rep2
+/cluster/home/mmackiewicz/opt/juicer/scripts/juicer.sh -g hg38  -a iCell_Gluta_Neuron_Rep2_Lib1 -p /cluster/home/mmackiewicz/opt/juicer/references/hg38.chrom.sizes -y /cluster/home/mmackiewicz/opt/juicer/restriction_sites/hg38_Arima.txt -z /cluster/home/mmackiewicz/opt/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D /cluster/home/mmackiewicz/opt/juicer
+
+cd Rep3
+/cluster/home/mmackiewicz/opt/juicer/scripts/juicer.sh -g hg38  -a iCell_Gluta_Neuron_Rep3_Lib1 -p /cluster/home/mmackiewicz/opt/juicer/references/hg38.chrom.sizes -y /cluster/home/mmackiewicz/opt/juicer/restriction_sites/hg38_Arima.txt -z /cluster/home/mmackiewicz/opt/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D /cluster/home/mmackiewicz/opt/juicer
+
+
+
+/cluster/home/aanderson/software/juicer/CPU2/scripts/mega.sh -g hg38 -s DpnII
+
+
+
+cd ../GABA
+
+cd Rep1
+/cluster/home/mmackiewicz/opt/juicer/scripts/juicer.sh -g hg38  -a iCell_GABA_Neuron_Rep1_Lib1 -p /cluster/home/mmackiewicz/opt/juicer/references/hg38.chrom.sizes -y /cluster/home/mmackiewicz/opt/juicer/restriction_sites/hg38_Arima.txt -z /cluster/home/mmackiewicz/opt/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D /cluster/home/mmackiewicz/opt/juicer
+
+
+cd Rep2
+/cluster/home/mmackiewicz/opt/juicer/scripts/juicer.sh -g hg38  -a iCell_GABA_Neuron_Rep2_Lib1 -p /cluster/home/mmackiewicz/opt/juicer/references/hg38.chrom.sizes -y /cluster/home/mmackiewicz/opt/juicer/restriction_sites/hg38_Arima.txt -z /cluster/home/mmackiewicz/opt/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D /cluster/home/mmackiewicz/opt/juicer
+
+cd Rep3
+/cluster/home/mmackiewicz/opt/juicer/scripts/juicer.sh -g hg38  -a iCell_GABA_Neuron_Rep3_Lib1 -p /cluster/home/mmackiewicz/opt/juicer/references/hg38.chrom.sizes -y /cluster/home/mmackiewicz/opt/juicer/restriction_sites/hg38_Arima.txt -z /cluster/home/mmackiewicz/opt/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D /cluster/home/mmackiewicz/opt/juicer
+
+
+/cluster/home/aanderson/software/juicer/CPU2/scripts/mega.sh -g hg38 -s DpnII
+
+
+```
+
+
+
+
+
+# HiC
+## plotgarden (Fig2)
+```{r}
+library(plotgardener)
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+library(org.Hs.eg.db)
+library(AnnotationHub)
+
+
+hicDataChrom <- readHic(file = "/cluster/home/mmackiewicz/for_nick/juicer_gluta_neurons/mega/aligned/inter_30.hic",
+    chrom = "17", assembly = "hg38",
+    resolution = 5000, chromstart=44700000,chromend=47000000, res_scale = "BP", norm = "KR", matrix="o"
+)
+
+#GABA CapC
+pairs<-import("~/myers/capC/GABA_LSF_mega/hiccups_220712/merged_loops.bedpe")
+pairs.df<-as.data.frame(pairs)
+pairs.df<-pairs.df[,c(1,2,3,6,7,8)]
+colnames(pairs.df)<-c("chrom1","start1","end1","chrom2","start2","end2")
+pairs.df$chrom1<-"chr17"
+pairs.df$chrom2<-"chr17"
+pairs.df$length<-pairs.df$start2-pairs.df$end1
+pairs.sub<-pairs.df[which(pairs.df$length<=1000000),]
+
+mapt.pairs<-pairs.df[which(pairs.df$start1==45890001 | pairs.df$start2==45890001),]
+
+
+#Gluta HiC
+pairs2<-import("/cluster/home/lrizzardi/HiC_analysis/hiccups_220622/GLUTA_HiC_5kb_full/merged_loops.bedpe")
+pairs2.df<-as.data.frame(pairs2)
+pairs2.df<-pairs2.df[,c(1,2,3,6,7,8)]
+colnames(pairs2.df)<-c("chrom1","start1","end1","chrom2","start2","end2")
+pairs2.df<-pairs2.df[which(pairs2.df$chrom1==17),]
+pairs2.df$chrom1<-"chr17"
+pairs2.df$chrom2<-"chr17"
+
+# Gluta CapC
+pairs3<-import("~/myers/capC/Gluta_mega_220714/hiccups_220712/merged_loops.bedpe")
+pairs3.df<-as.data.frame(pairs3)
+pairs3.df<-pairs3.df[,c(1,2,3,6,7,8)]
+colnames(pairs3.df)<-c("chrom1","start1","end1","chrom2","start2","end2")
+pairs3.df$chrom1<-"chr17"
+pairs3.df$chrom2<-"chr17"
+pairs3.df$length<-pairs3.df$start2-pairs3.df$end1
+pairs3.sub<-pairs3.df[which(pairs3.df$length<=1000000),]
+
+
+# ENCODE annotations
+load("/cluster/home/broberts/Common_Data_Repository/iCellGABA_CRE_ENCODEstyle_GR.Rvar")
+enc=full_annot_encode_cre_def_GR
+enc.rs<-resize(enc, 500, fix="center")
+
+
+
+
+# ChIPseq/ATAC
+CTCF<-readBigwig("/cluster/home/aanderson/myers/MAPT_project/ChIPseq/croo_output/CTCF_KOLF2.1J_Neuron/signal/pooled-rep/basename_prefix.pooled_x_basename_prefix.pooled.fc.signal.bigwig",  chrom="chr17", chromstart=44700000,chromend=47000000)
+h3k27ac<-readBigwig("~/myers/MAPT_project/ChIPseq/croo_output/H3K27ac_KOLF2.1J_Neuron/signal/pooled-rep/basename_prefix.pooled_x_basename_prefix.pooled.fc.signal.bigwig",  chrom="chr17", chromstart=44700000,chromend=47000000)
+atac<-readBigwig("/cluster/home/lrizzardi/data_for_others/221025_KOLF2.1J_ATAC_Bri/cromwell_output/signal/pooled-rep/KOLF2.1J_BrainPhys_25k_Day14_rep.pooled.fc.signal.bigwig",  chrom="chr17", chromstart=44700000,chromend=47000000)
+
+###############################################################
+###############################################################
+###############################################################
+###############################################################
+
+
+hicTmp<-hicDataChrom[which(hicDataChrom$`17_A`!= hicDataChrom$`17_B`),]
+t<-table(hicTmp$`17_B`)
+hicTmp<-hicTmp[!(hicTmp$`17_A` %in% names(t[t<15])),]
+hicTmp<-hicTmp[!(hicTmp$`17_B` %in% names(t[t<15])),]
+
+
+#create gene annotation plot using Signac funciton
+DefaultAssay(data)<-"ATAC"
+annot<-Annotation(data)
+annot<-annot[which(annot$gene_biotype=="protein_coding"),]
+annot<-annot[!grepl("AC1", annot$gene_name),]
+Annotation(data)<-annot
+region<-GRanges("chr17:44890000-46890000")
+gene_plot<-AnnotationPlot(data, region=region)&theme_void()
+
+
+# set paramters for plotgardener
+params_a <- pgParams(chrom = "chr17", chromstart = 44890000, chromend = 46890000, assembly = "hg38",x =1.5, width = 8.5, just = c("left", "top"), default.units ="inches")
+
+
+pdf("~/myers/scAnalysis/plots/Gluta_HiC_MAPT_wNew_ChIP.pdf", width=10, height=10)
+pageCreate(width = 11, height = 11, default.units = "inches", showGuides=F)
+yy<-3 
+hic_gm <- plotHicTriangle(data = hicTmp, params = params_a,  zrange = c(0, 20), resolution = 5000,   y = 1, height = yy)
+
+##
+y<-yy+1.25 #1.5 because distance to top of plot + buffer
+h<-0.4
+p<-plotText(label = "Gluta HiC",  fontsize = 8,
+            x=0.8, y = y, 
+            just = c("left","top"), default.units ="inches")
+ppa<-plotPairsArches(
+    data = pairs2.df,
+    params=params_a,
+    y = y,  height = h,
+    just = c("left", "top"), default.units = "inches",
+    fill = "black", linecolor = "black", flip = F)
+##
+y<-y+h+0.25
+p<-plotText(label = "GABA CapC",  fontsize = 8,
+            x=0.8, y = y, 
+            just = c("left","top"), default.units ="inches")
+ppa<-plotPairsArches(
+    data = pairs.sub,
+    params=params_a,
+    assembly = "hg38",
+    y = y,  height = h,
+    just = c("left", "top"), default.units = "inches",
+    fill = "black", linecolor = "black", flip = F)
+#
+y<-y+h+0.25
+p<-plotText(label = "Gluta CapC",  fontsize = 8,
+            x=0.8, y = y, 
+            just = c("left","top"), default.units ="inches")
+ppa<-plotPairsArches(
+    data = pairs3.sub,
+    params=params_a,
+    assembly = "hg38",
+    y = y,  height = h,
+    just = c("left", "top"), default.units = "inches",
+    fill = "black", linecolor = "black", flip = F)
+##
+y<-y+h+0.25
+h<-0.1
+p<-plotText(label = "CREs",  fontsize = 8,
+            x=0.8, y = y, 
+            just = c("left","top"), default.units ="inches")
+b<-plotRanges(enc.rs, strandSplit=F, params=params_a,
+              y=y, height=h, 
+              fill=colorby("encodeLabel", palette=colorRampPalette(c("deepskyblue","gold","pink1","orange","red","deepskyblue")) ), collapse=T)
+
+##
+y<-y+h+0.25
+h<-0.4
+p<-plotText(label = "ATAC",  fontsize = 8,
+            x=0.8, y = y, 
+            just = c("left","top"), default.units ="inches")
+
+p<-plotSignal(atac, params=params_a,chrom="chr17", 
+              y=y, height=h, linecolor="dodgerblue",fill="dodgerblue")
+##
+y<-y+h+0.25
+h<-0.4
+p<-plotText(label = "H3K27ac",  fontsize = 8,
+            x=0.8, y = y, 
+            just = c("left","top"), default.units ="inches")
+
+p<-plotSignal(h3k27ac, params=params_a,chrom="chr17", 
+              y=y, height=h, linecolor="firebrick", fill="firebrick")
+##
+y<-y+h+0.25
+h<-0.4
+p<-plotText(label = "CTCF",  fontsize = 8,
+            x=0.8, y = y, 
+            just = c("left","top"), default.units ="inches")
+
+p<-plotSignal(h3kme3, params=params_a,chrom="chr17", y=y, height=h, linecolor="forestgreen", fill="forestgreen")
+
+##
+y<-y+h+0.25
+h<-1.4
+
+plotGG(gene_plot, params=params_a, height=h, y=y)
+
+annoGenomeLabel(params=params_a,
+    plot = hic_gm, y = y+h, scale = "Mb",
+    just = c("left", "top"), fontsize=)
+dev.off()
+
+
+
+```
+
+
+## loop annotation
+
+annotate first and second GRange separately 
+```{r}
+
+# GABA CapC
+pairs<-import("~/myers/capC/GABA_LSF_mega/hiccups_220712/merged_loops.bedpe")
+pairs.df<-as.data.frame(pairs)
+pairs.df<-pairs.df[,c(1,2,3,6,7,8)]
+colnames(pairs.df)<-c("chrom1","start1","end1","chrom2","start2","end2")
+pairs.df$chrom1<-"chr17"
+pairs.df$chrom2<-"chr17"
+pairs.df$length<-pairs.df$start2-pairs.df$end1
+GABA.pairs<-pairs.df[which(pairs.df$start1==45890001 | pairs.df$start2==45890001),]
+GABA.pairs<-GABA.pairs[which(GABA.pairs$length<1000000),]
+##
+first<-GABA.pairs[,c(1,2,3)]
+colnames(first)<-c("seqnames","start","end")
+first<-GRanges(first)
+second<-GABA.pairs[,c(4,5,6)]
+colnames(second)<-c("seqnames","start","end")
+second<-GRanges(second)
+# # # #
+enc.rs<-enc.rs[order(enc.rs$encodeLabel, decreasing=T),]
+enc.rs<-resize(enc.rs, fix="center", width=250)
+#
+over1<-as.data.frame(findOverlaps(first, enc.rs,minoverlap=100))
+over1<-over1[!duplicated(over1$queryHits),]
+GABA.pairs$first_annot<-"None"
+GABA.pairs[over1$queryHits,]$first_annot<-enc.rs[over1$subjectHits,]$encodeLabel
+#
+over1<-as.data.frame(findOverlaps(second, enc.rs,minoverlap=100))
+over1<-over1[!duplicated(over1$queryHits),]
+GABA.pairs$second_annot<-"None"
+GABA.pairs[over1$queryHits,]$second_annot<-enc.rs[over1$subjectHits,]$encodeLabel
+GABA.pairs$pair<-ifelse(GABA.pairs$first_annot !="PLS", paste0(GABA.pairs$second_annot,"-", GABA.pairs$first_annot), paste0(GABA.pairs$first_annot,"-", GABA.pairs$second_annot))
+a<- as.data.frame(table(GABA.pairs$pair))
+a$Method<-"GABA_CapC"
+
+
+####################################################################################
+####################################################################################
+
+# GLuta CapC
+pairs3<-import("~/myers/capC/Gluta_mega_220714/hiccups_220712/merged_loops.bedpe")
+pairs3.df<-as.data.frame(pairs3)
+pairs3.df<-pairs3.df[,c(1,2,3,6,7,8)]
+colnames(pairs3.df)<-c("chrom1","start1","end1","chrom2","start2","end2")
+pairs3.df$chrom1<-"chr17"
+pairs3.df$chrom2<-"chr17"
+pairs3.df$length<-pairs3.df$start2-pairs3.df$end1
+Gluta.pairs<-pairs3.df[which(pairs3.df$start1==45890001 | pairs3.df$start2==45890001),]
+Gluta.pairs<-Gluta.pairs[which(Gluta.pairs$length<1000000),]
+##
+first<-Gluta.pairs[,c(1,2,3)]
+colnames(first)<-c("seqnames","start","end")
+first<-GRanges(first)
+second<-Gluta.pairs[,c(4,5,6)]
+colnames(second)<-c("seqnames","start","end")
+second<-GRanges(second)
+# # # #
+enc.rs<-enc.rs[order(enc.rs$encodeLabel, decreasing=T),]
+enc.rs<-resize(enc.rs, fix="center", width=250)
+#
+over1<-as.data.frame(findOverlaps(first, enc.rs,minoverlap=100))
+over1<-over1[!duplicated(over1$queryHits),]
+Gluta.pairs$first_annot<-"None"
+Gluta.pairs[over1$queryHits,]$first_annot<-enc.rs[over1$subjectHits,]$encodeLabel
+#
+over1<-as.data.frame(findOverlaps(second, enc.rs,minoverlap=100))
+over1<-over1[!duplicated(over1$queryHits),]
+Gluta.pairs$second_annot<-"None"
+Gluta.pairs[over1$queryHits,]$second_annot<-enc.rs[over1$subjectHits,]$encodeLabel
+Gluta.pairs$pair<-ifelse(Gluta.pairs$first_annot !="PLS", paste0(Gluta.pairs$second_annot,"-", Gluta.pairs$first_annot), paste0(Gluta.pairs$first_annot,"-", Gluta.pairs$second_annot))
+b<- as.data.frame(table(Gluta.pairs$pair))
+b$Method<-"Gluta_CapC"
+
+ab<-rbind(a,b)
+pdf("~/myers/scAnalysis/plots/CapC_loop_annotation_MAPT.pdf", width=5,height=5)
+ggplot(ab, aes(x=Method, y=Freq, fill=Var1))+geom_bar(stat="identity")+theme_classic()+xlab("")+scale_fill_brewer(palette="Spectral", name="Annotation")+theme(axis.text=element_text(size=10), axis.title=element_text(size=12),legend.text=element_text(size=12))
+dev.off()
+
+
+
+
+####################################################################################
+####################################################################################
+
+#HiC
+
+pairs2<-import("/cluster/home/lrizzardi/HiC_analysis/hiccups_220622/GLUTA_HiC_5kb_full/merged_loops.bedpe")
+pairs2.df<-as.data.frame(pairs2)
+pairs2.df<-pairs2.df[,c(1,2,3,6,7,8)]
+colnames(pairs2.df)<-c("chrom1","start1","end1","chrom2","start2","end2")
+pairs2.df$chrom1<-paste0("chr", pairs2.df$chrom1)
+pairs2.df$chrom2<-paste0("chr", pairs2.df$chrom2)
+pairs2.df$length<-pairs2.df$start2-pairs2.df$end1
+HiC.pairs<-pairs2.df
+
+pdf("~/myers/scAnalysis/plots/HiC_averageLoopDist.pdf", width=3, height=4)
+ggplot(pairs2.df, aes(y=log10(length), x=1))+geom_violin(fill="slategray")+theme_classic()
+dev.off()
+
+##
+first<-HiC.pairs[,c(1,2,3)]
+colnames(first)<-c("seqnames","start","end")
+first<-GRanges(first)
+second<-HiC.pairs[,c(4,5,6)]
+colnames(second)<-c("seqnames","start","end")
+second<-GRanges(second)
+# # # #
+enc.rs<-enc.rs[order(enc.rs$encodeLabel, decreasing=T),]
+enc.rs<-resize(enc.rs, fix="center", width=250)
+#
+over1<-as.data.frame(findOverlaps(first, enc.rs,minoverlap=100))
+over1<-over1[!duplicated(over1$queryHits),]
+HiC.pairs$first_annot<-"No Annotation"
+HiC.pairs[over1$queryHits,]$first_annot<-enc.rs[over1$subjectHits,]$encodeLabel
+#
+over1<-as.data.frame(findOverlaps(second, enc.rs,minoverlap=100))
+over1<-over1[!duplicated(over1$queryHits),]
+HiC.pairs$second_annot<-"No Annotation"
+HiC.pairs[over1$queryHits,]$second_annot<-enc.rs[over1$subjectHits,]$encodeLabel
+
+HiC.pairs$first_annot<-ifelse(HiC.pairs$first_annot=="DNase-CTCF-only", "CTCF-only",ifelse(HiC.pairs$first_annot %in% c("pELS","dELS"), "ELS",  HiC.pairs$first_annot) )
+HiC.pairs$second_annot<-ifelse(HiC.pairs$second_annot=="DNase-CTCF-only", "CTCF-only",ifelse(HiC.pairs$second_annot %in% c("pELS","dELS"), "ELS",  HiC.pairs$second_annot) )
+
+for(i in 1:nrow(HiC.pairs)){
+  l<-c(HiC.pairs$first_annot[i], HiC.pairs$second_annot[i])
+  l<-sort(l)
+  HiC.pairs$pair[i]<-paste0(l[1],":", l[2])
+}
+
+
+
+TAB<-as.data.frame(prop.table(table(HiC.pairs$pair)))
+TAB$Var1<-as.character(TAB$Var1)
+TAB<-TAB[order(-TAB$Freq),]
+top<-TAB$Var1[1:5]
+TAB$Annotation<-paste0(TAB$Var1,": ", round(TAB$Freq,2)*100,"%")
+pdf("~/myers/scAnalysis/plots/HiC_annot_loops_all.pdf")
+ggplot(TAB, aes(x="", y=Freq, fill=Annotation)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  coord_polar("y", start=0) +
+  theme_void() +theme(legend.text=element_text(size=15), legend.title=element_text(size=18))
+dev.off()
+
+
+HiC.pairs$p2<-ifelse(HiC.pairs$pair %in% top, HiC.pairs$pair, "other")
+TAB<-as.data.frame(prop.table(table(HiC.pairs$p2)))
+TAB<-TAB[order(-TAB$Freq),]
+TAB$Var1<-factor(TAB$Var1, levels=TAB$Var1 )
+TAB$Var2<-paste0(TAB$Var1,": ", round(TAB$Freq,2)*100,"%")
+TAB$Var2<-factor(TAB$Var2, levels=c(TAB$Var2[1],TAB$Var2[2],TAB$Var2[4],TAB$Var2[5],TAB$Var2[6],TAB$Var2[3]) )
+
+
+
+TAB <- TAB %>%
+  arrange(desc(Var1)) %>%
+  mutate(lab.ypos = cumsum(Freq) - 0.5*Freq)
+
+pdf("~/myers/scAnalysis/plots/HiC_annot_loops.pdf")
+ggplot(TAB, aes(x=2, y=Freq, fill=Var1)) +
+  geom_bar(stat="identity", width=1, color="white") +
+  coord_polar("y", start=0) +
+  theme_void() +scale_fill_manual(values=c("gold","salmon1","skyblue1","red", "azure3","slategray"), name="Annotation")+theme(legend.text=element_text(size=15), legend.title=element_text(size=18))+geom_text(aes(y = lab.ypos, label = paste0(round(Freq,3)*100,"%" ) ), size=5,color = "black")+
+  xlim(0.5, 2.5)
+dev.off()
+
+
+```
+
+
+
+
+# SC
+
+## AD scLinks
+Links were recalled at 1Mb 
+
+```{bash}
+
+export PATH=/cluster/home/aanderson/software/cellranger-arc-2.0.1:$PATH
+
+
+
+cellranger-arc reanalyze --id=1Mb_links_AD \
+--matrix=/cluster/home/aanderson/myers/multiomics_cellranger/211206/aggr_211206_210222/outs/filtered_feature_bc_matrix.h5 \
+--atac-fragments=/cluster/home/aanderson/myers/multiomics_cellranger/211206/aggr_211206_210222/outs/atac_fragments.tsv.gz \
+--reference=/cluster/home/aanderson/software/cellranger-arc-2.0.0/GRCh38 \
+--peaks=/cluster/home/aanderson/myers/scAnalysis/CT_filtered_peaks.srt.bed \
+--barcodes=/cluster/home/aanderson/myers/scAnalysis/MAPT_links/AD_cells.csv \
+--params=/cluster/home/aanderson/myers/scAnalysis/MAPT_links/params.csv \
+--agg=/cluster/home/aanderson/myers/multiomics_cellranger/211206/aggr_211206_210222/outs/aggr.csv \
+--jobmode=slurm 
+
+
+
+cellranger-arc reanalyze --id=1Mb_links_Ctrl \
+--matrix=/cluster/home/aanderson/myers/multiomics_cellranger/211206/aggr_211206_210222/outs/filtered_feature_bc_matrix.h5 \
+--atac-fragments=/cluster/home/aanderson/myers/multiomics_cellranger/211206/aggr_211206_210222/outs/atac_fragments.tsv.gz \
+--reference=/cluster/home/aanderson/software/cellranger-arc-2.0.0/GRCh38 \
+--peaks=/cluster/home/aanderson/myers/scAnalysis/CT_filtered_peaks.srt.bed \
+--barcodes=/cluster/home/aanderson/myers/scAnalysis/MAPT_links/Ctrl_cells.csv \
+--params=/cluster/home/aanderson/myers/scAnalysis/MAPT_links/params.csv \
+--agg=/cluster/home/aanderson/myers/multiomics_cellranger/211206/aggr_211206_210222/outs/aggr.csv \
+--jobmode=slurm 
+
+```
+
+
+```{r}
+#AD
+part1<-import("/cluster/home/aanderson/myers/scAnalysis/MAPT_links/1Mb_links_AD/outs/analysis/feature_linkage/feature_linkage.bedpe", format="bedpe")
+
+a10<-as.data.frame(part1)
+a10<-a10[which(a10$NA.2!="peak-peak"),]
+
+{
+a10$seqnames<-a10$first.seqnames
+start<-as.integer(ifelse(a10$NA.2=="peak-gene", (a10$first.end+a10$first.start)/2, (a10$second.end+a10$second.start)/2))
+end<-ifelse(a10$NA.2=="gene-peak",a10$first.start, a10$second.start)
+a10$start<-ifelse(start<end, start,end)
+a10$end<-ifelse(start<end,end,start)
+a10$peak.seqnames<-paste0("chr",ifelse(a10$NA.2=="peak-gene",a10[,1], a10[,6]),sep="")
+a10$peak.start<-ifelse(a10$NA.2=="peak-gene",a10[,2], a10[,7])
+a10$peak.end<-ifelse(a10$NA.2=="peak-gene",a10[,3], a10[,8])
+a<-matrix(unlist(strsplit(a10$name,"><")),ncol=2,byrow=T)
+gene<-ifelse(a10$NA.2=="peak-gene",noquote(gsub(">","",a[,2])),noquote(gsub("<","",a[,1])))
+peak<-ifelse(a10$NA.2=="gene-peak",noquote(gsub(">","",a[,2])),noquote(gsub("<","",a[,1])))
+a10$gene<-gene
+a10$peak<-peak
+a10$gene.strand<-"*"
+a10$peak.strand<-"*"
+a10$gene.seqnames<-paste0("chr",ifelse(a10$NA.2=="gene-peak",a10[,1], a10[,6]),sep="")
+a10$gene.start<-ifelse(a10$NA.2=="gene-peak",a10[,2], a10[,7])
+a10$gene.end<-ifelse(a10$NA.2=="gene-peak",a10[,3], a10[,8])
+a10$Peak_pos<-paste0(a10$peak.seqnames,"-",a10$peak.start-1,"-", a10$peak.end)
+}### format a10 ( ad)
+
+a10<-a10[which(abs(a10$score)>0.2),]
+
+annot_peaks<-read.csv("~/myers/scAnalysis/RINdrop/CTpeaks_wK27olap.csv")
+annot_peaks$peak<-gsub("X",23, annot_peaks$peak)
+annot_peaks$peak<-gsub("Y",24, annot_peaks$peak)
+a10_ct<-merge(a10, annot_peaks, by.x="Peak_pos", by.y="peak")
+a10_ct<-a10_ct[,c(20,21,22,23,24,13,14,15,37,38,17,18,19)]
+colnames(a10_ct)[c(1,2,3,7)]<-c("seqnames","start","end","qval")
+
+
+
+#Ctrl
+part1<-import("/cluster/home/aanderson/myers/scAnalysis/MAPT_links/1Mb_links_Ctrl/outs/analysis/feature_linkage/feature_linkage.bedpe", format="bedpe")
+c10<-as.data.frame(part1)
+
+c10<-c10[which(c10$NA.2!="peak-peak"),]
+
+{
+c10$seqnames<-c10$first.seqnames
+start<-as.integer(ifelse(c10$NA.2=="peak-gene", (c10$first.end+c10$first.start)/2, (c10$second.end+c10$second.start)/2))
+end<-ifelse(c10$NA.2=="gene-peak",c10$first.start, c10$second.start)
+c10$start<-ifelse(start<end, start,end)
+c10$end<-ifelse(start<end,end,start)
+c10$peak.seqnames<-paste0("chr",ifelse(c10$NA.2=="peak-gene",c10[,1], c10[,6]),sep="")
+c10$peak.start<-ifelse(c10$NA.2=="peak-gene",c10[,2], c10[,7])
+c10$peak.end<-ifelse(c10$NA.2=="peak-gene",c10[,3], c10[,8])
+a<-matrix(unlist(strsplit(c10$name,"><")),ncol=2,byrow=T)
+gene<-ifelse(c10$NA.2=="peak-gene",noquote(gsub(">","",a[,2])),noquote(gsub("<","",a[,1])))
+peak<-ifelse(c10$NA.2=="gene-peak",noquote(gsub(">","",a[,2])),noquote(gsub("<","",a[,1])))
+c10$gene<-gene
+c10$peak<-peak
+c10$gene.strand<-"*"
+c10$peak.strand<-"*"
+c10$gene.seqnames<-paste0("chr",ifelse(c10$NA.2=="gene-peak",c10[,1], c10[,6]),sep="")
+c10$gene.start<-ifelse(c10$NA.2=="gene-peak",c10[,2], c10[,7])
+c10$gene.end<-ifelse(c10$NA.2=="gene-peak",c10[,3], c10[,8])
+c10$Peak_pos<-paste0(c10$peak.seqnames,"-",c10$peak.start-1,"-", c10$peak.end)
+}### format c10 ( ad)
+
+c10<-c10[which(abs(c10$score)>0.2),]
+c10_ct<-merge(c10, annot_peaks, by.x="Peak_pos", by.y="peak")
+c10_ct<-c10_ct[,c(20,21,22,23,24,13,14,15, 37,38,17,18,19)]
+colnames(c10_ct)[c(1,2,3,7)]<-c("seqnames","start","end","qval")
+
+
+
+all<-merge(a10_ct, c10_ct, by=c("gene","seqnames","start","end"), all=T)
+all$group<-ifelse(is.na(all$score.x)==T, "Ctrl",
+                  ifelse(is.na(all$score.y)==T, "AD","common"))
+
+all$CT<-ifelse(is.na(all$score.x)==T, all$peak_called_in.y, all$peak_called_in.x)
+all$Astrocytes      <-grepl("Astrocytes",all$CT)
+all$Microglia       <-grepl("Microglia",       all$CT)
+all$Inhibitory      <-grepl("Inhibitory",      all$CT)
+all$Excitatory      <-grepl("Excitatory",      all$CT)
+all$Inhibitory      <-grepl("Inhibitory",      all$CT)
+all$Oligodendrocytes<-grepl("Oligodendrocytes",all$CT)
+all$OPCs             <-grepl("OPCs",            all$CT)
+all$Pericytes        <-grepl("Pericytes",       all$CT)
+all$Endothelial      <-grepl("Endothelial",      all$CT)
+
+all$signac.seqnames<-ifelse(all$group=="AD", all$seqnames.x.x, all$seqnames.x.y)
+all$signac.start<-ifelse(all$group=="AD", all$start.x.x, all$start.x.y)
+all$signac.end<-ifelse(all$group=="AD", all$end.x.x, all$end.x.y)
+all$distTSS<-ifelse(all$group=="AD", all$NA.1.x, all$NA.1.y)
+all<-all[,c(2,3,4,1,5,6,14,7,15,13,17,21,22,23,24,25,26,27,28,31,32,33)]
+write.csv(all, "~/myers/scAnalysis/MAPT_links/ALL_1Mb_links.csv")
+
+
+mapt<-all[which(all$gene=="MAPT"),]
+write.csv(mapt, "~/myers/scAnalysis/MAPT_links/MAPT_1Mb_links.csv")
+```
+
+
+
+
+### plot
+```{r}
+mapt<-read.csv("~/myers/scAnalysis/MAPT_links/MAPT_1Mb_links.csv")
+
+
+signac_form<-as.data.frame(ALL)[,-c(1,2,3,4)]
+colnames(signac_form)[c(19,20,21)]<-c("seqnames","start","end")
+signac_form$seqnames<-"chr17"
+signac.gr<-GRanges(signac_form)
+signac.gr$group2<-ifelse(signac.gr$group=="AD",0,  ifelse(signac.gr$group=="common",1,2))
+signac.gr<-signac.gr[order(start(signac.gr), end(signac.gr)),]
+signac.gr$score<-ifelse(signac.gr$group=="AD",signac.gr$score.x,
+                        ifelse(signac.gr$group=="Ctrl", signac.gr$score.y,
+                               (signac.gr$score.x+signac.gr$score.y)/2))
+
+
+
+min.cutoff<-min(signac.gr$score)*2
+min.cutoff<-ifelse(min.cutoff<0, min.cutoff, 0)
+max.cutoff<-max(signac.gr$score)*2
+
+
+
+region<-GRanges("chr17:44900000-46900000")
+Idents(data)<-data$Status
+DefaultAssay(data)<-"CTpeaks"
+
+
+
+
+cov_plot<-CoveragePlot(object=data, region=region,  assay="CTpeaks",annotation=F, window=10000,peaks=F, links=F)&scale_fill_manual(values=c("blue","red"))
+
+Links(data)<-signac.gr #full
+link_plotA <- LinkPlot.height(signac.gr, region=region, min.cutoff=min.cutoff, max.cutoff=max.cutoff)+theme(legend.text = element_text(size=6),legend.key.size = unit(.3,"cm"))+ylab("Score")
+triosP<-Bed_PeakPlot(trios[which(trios$gene=="MAPT"),], region)
+expr_plot <- ExpressionPlot(object = data,features = "MAPT",assay = "RNA", )&scale_fill_manual(values=c("blue","red"))
+DefaultAssay(data)<-"ATAC"
+gene_plot<-AnnotationPlot(data, region=region) &scale_x_continuous(breaks=c(44900000,45200000,45400000,45600000,45800000,46000000,46200000,46400000, 46600000,46900000))
+p<-CombineTracks(plotlist=list(cov_plot,link_plotA, triosP,gene_plot),expression.plot=expr_plot, widths=c(8,1), heights=c(4,3,1,3))
+
+pdf(paste0("~/myers/scAnalysis/plots/MAPT_all1Mb_wTrios.pdf"), width=10, height=7)
+p
+dev.off()
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+## BrainPhys multi
+
+Format Links
+```{r}
+
+part1<-import("~/myers/multiomics_cellranger/210330/aggr/outs/analysis/feature_linkage/feature_linkage.bedpe", format="bedpe")
+
+a10<-as.data.frame(part1)
+a10<-a10[which(a10$NA.2!="peak-peak"),]
+
+{
+a10$seqnames<-a10$first.seqnames
+start<-as.integer(ifelse(a10$NA.2=="peak-gene", (a10$first.end+a10$first.start)/2, (a10$second.end+a10$second.start)/2))
+end<-ifelse(a10$NA.2=="gene-peak",a10$first.start, a10$second.start)
+a10$start<-ifelse(start<end, start,end)
+a10$end<-ifelse(start<end,end,start)
+a10$peak.seqnames<-paste0("chr",ifelse(a10$NA.2=="peak-gene",a10[,1], a10[,6]),sep="")
+a10$peak.start<-ifelse(a10$NA.2=="peak-gene",a10[,2], a10[,7])
+a10$peak.end<-ifelse(a10$NA.2=="peak-gene",a10[,3], a10[,8])
+a<-matrix(unlist(strsplit(a10$name,"><")),ncol=2,byrow=T)
+gene<-ifelse(a10$NA.2=="peak-gene",noquote(gsub(">","",a[,2])),noquote(gsub("<","",a[,1])))
+peak<-ifelse(a10$NA.2=="gene-peak",noquote(gsub(">","",a[,2])),noquote(gsub("<","",a[,1])))
+a10$gene<-gene
+a10$peak<-peak
+a10$gene.strand<-"*"
+a10$peak.strand<-"*"
+a10$gene.seqnames<-paste0("chr",ifelse(a10$NA.2=="gene-peak",a10[,1], a10[,6]),sep="")
+a10$gene.start<-ifelse(a10$NA.2=="gene-peak",a10[,2], a10[,7])
+a10$gene.end<-ifelse(a10$NA.2=="gene-peak",a10[,3], a10[,8])
+a10$Peak_pos<-paste0(a10$peak.seqnames,"-",a10$peak.start-1,"-", a10$peak.end)
+}### format a10 ( ad)
+
+a10<-a10[which(abs(a10$score)>0.2),]
+
+a10<-a10[,c(19,20,21,22,12,13,14, 16,17,18)]
+colnames(a10)[c(1,2,3,8,9,10)]<-c("seqnames","start","end", "signac.seqnames","signac.start","signac.end")
+a10.gr<-GRanges(a10)
+saveRDS(a10.gr,"~/myers/scAnalysis/NPC_multi/210330_links_aggr.rds")
+
+
+
+
+```
+
+
+### pre-processing
+
+All QC filtering, normalization, and dimension reduction
+
+
+```{r}
+
+
+data.data <- Read10X(data.dir = "/cluster/home/aanderson/myers/multiomics_cellranger/210330/aggr/outs/filtered_feature_bc_matrix/")
+rna_counts <- data.data$`Gene Expression`
+atac_counts <- data.data$Peaks
+
+data <- CreateSeuratObject(counts = rna_counts,project="all")
+step<-"Init"
+numCells<-nrow(data@meta.data)
+###################################################################################
+
+data[["percent.mt"]] <- PercentageFeatureSet(data, pattern = "^MT-")
+a<-signif(quantile(data$nFeature_RNA,probs=0.99)[[1]],digits=1)
+threshold<-a
+###################################################################################
+
+
+
+
+
+
+###################################################################################
+#     Add atac assay
+#   and get TSS, nucleosome signal, blacklist fraction
+grange.counts <- StringToGRanges(rownames(atac_counts), sep = c(":", "-"))
+grange.use <- seqnames(grange.counts) %in% standardChromosomes(grange.counts)
+atac_counts <- atac_counts[as.vector(grange.use), ]
+annotations <- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
+seqlevelsStyle(annotations) <- 'UCSC'
+genome(annotations) <- "hg38"
+
+frag.file <- paste0("/cluster/home/aanderson/myers/multiomics_cellranger/210330/aggr/outs/atac_fragments.tsv.gz")
+chrom_assay <- CreateChromatinAssay(
+  counts = atac_counts,
+  sep = c(":", "-"),
+  genome = 'hg38',
+  fragments = frag.file,
+  min.cells = 10,
+  annotation = annotations
+)
+data[["ATAC"]] <- chrom_assay
+DefaultAssay(data)<-"ATAC"
+data <- NucleosomeSignal(data)
+data <- TSSEnrichment(data)
+data$blacklist_fraction <- FractionCountsInRegion(object = data, assay = 'ATAC',regions = blacklist_hg38)
+###################################################################################
+
+###################################################################################
+#                     Filtering, norm, scale, dim reduc
+data<-subset(data, subset = nFeature_RNA < 10000 &   
+               nFeature_RNA > 200 &
+               nucleosome_signal < 2 &
+               percent.mt < 5 & 
+               TSS.enrichment > 2)
+
+data<-SCTransform(data, vars.to.regress = c("percent.mt"),verbose=F) %>% RunPCA(ndims=30) %>% FindNeighbors(dims = 1:30) %>% 
+  RunUMAP(dims = 1:30, reduction.name="umap.rna", reduction.key = "rnaUMAP_") 
+DefaultAssay(data)<-"ATAC"
+data<-RunTFIDF(data) %>% FindTopFeatures(min.cutoff='q0')%>% RunSVD()%>% 
+  RunUMAP(reduction='lsi',dims=2:50,reduction.name="umap.atac",reduction.key="atacUMAP_") 
+step<-c(step,"filter")
+numCells<-c(numCells, nrow(data@meta.data))
+
+#Make WNN graph
+data<-FindMultiModalNeighbors(data, reduction.list=list("pca","lsi"), dims.list=list(1:30,2:40))
+data<-RunUMAP(data,nn.name="weighted.nn", reduction.name="wnn.umap",reduction.key="wnnUMAP_")
+data<-FindClusters(data, graph.name="wknn", resolution=0.4)
+
+
+# label cells based off of barcode tag after aggr
+data$bar<-sapply(strsplit(colnames(data),"-"), `[`,2)
+data$day<-ifelse(data$bar==1, "NPC",
+                 ifelse(data$bar==2,"day14","day21"))
+
+
+
+
+pdf("~/myers/scAnalysis/plots/220405/Cultured_neuron_umap.pdf")
+DimPlot(data, reduction="wnn.umap", group.by="day")+scale_fill_manual(values=c("#09179B","#37C5E8", "#1ABE76"))
+dev.off()
+pdf("~/myers/scAnalysis/plots/220405/Cultured_neuron_umap_cluster.pdf")
+DimPlot(data, reduction="wnn.umap")
+dev.off()
+
+
+pdf("~/myers/scAnalysis/plots/220405/Cultured_neuron_UMIs.pdf")
+FeaturePlot(data, reduction="wnn.umap", features="nCount_RNA")
+dev.off()
+```
+
+### Cluster Markers/ Filtering
+```{r}
+
+
+
+###################################################################################
+
+###################################################################################
+
+
+#get markers for each cluster
+DefaultAssay(data)<-"RNA"
+data<-NormalizeData(data)
+degs<-FindAllMarkers(data)
+degs_sig<-degs[which(degs$p_val_adj<0.01 & degs$avg_log2FC>0.5),]
+
+
+dbs <- c("GO_Molecular_Function_2021", "GO_Cellular_Component_2021", "GO_Biological_Process_2021", "KEGG_2021_Human","Azimuth_Cell_Types_2021")
+go0<-enrichr(degs_sig[which(degs_sig$cluster==0),]$gene, dbs)
+go1<-enrichr(degs_sig[which(degs_sig$cluster==1),]$gene, dbs)
+go2<-enrichr(degs_sig[which(degs_sig$cluster==2),]$gene, dbs)
+go3<-enrichr(degs_sig[which(degs_sig$cluster==3),]$gene, dbs)
+go4<-enrichr(degs_sig[which(degs_sig$cluster==4),]$gene, dbs)
+go5<-enrichr(degs_sig[which(degs_sig$cluster==5),]$gene, dbs)
+go6<-enrichr(degs_sig[which(degs_sig$cluster==6),]$gene, dbs)
+
+tmp0<-go0[["GO_Biological_Process_2021"]][1:10,]
+tmp1<-go1[["GO_Biological_Process_2021"]][1:10,]
+tmp2<-go2[["GO_Biological_Process_2021"]][1:10,]
+tmp3<-go3[["GO_Biological_Process_2021"]][1:10,]
+tmp4<-go4[["GO_Biological_Process_2021"]][1:10,]
+tmp5<-go5[["GO_Biological_Process_2021"]][1:10,]
+tmp6<-go6[["GO_Biological_Process_2021"]][1:10,]
+
+tmp0$cluster<-"0"
+tmp1$cluster<-"1"
+tmp2$cluster<-"2"
+tmp3$cluster<-"3"
+tmp4$cluster<-"4"
+tmp5$cluster<-"5"
+tmp6$cluster<-"6"
+
+tmp<-rbind(tmp0,tmp1,tmp2,tmp3,tmp4,tmp5,tmp6)
+write.csv(tmp, "~/myers/scAnalysis/NPC_multi/GO_terms_preFilter_clusters.csv")
+
+#remove cells that top expressed genes are all RP and MT  
+###################################################################################
+
+###################################################################################
+
+
+
+data<-subset(data, subset= seurat_clusters %in% c(0,1,3,6))
+
+data<-SCTransform(data, vars.to.regress = c("percent.mt"),verbose=F) %>% RunPCA(ndims=30) %>% FindNeighbors(dims = 1:30) %>% 
+  RunUMAP(dims = 1:30, reduction.name="umap.rna", reduction.key = "rnaUMAP_") 
+DefaultAssay(data)<-"ATAC"
+data<-RunTFIDF(data) %>% FindTopFeatures(min.cutoff='q0')%>% RunSVD()%>% 
+  RunUMAP(reduction='lsi',dims=2:50,reduction.name="umap.atac",reduction.key="atacUMAP_") 
+step<-c(step,"filter")
+numCells<-c(numCells, nrow(data@meta.data))
+
+data<-FindMultiModalNeighbors(data, reduction.list=list("pca","lsi"), dims.list=list(1:30,2:40))
+data<-RunUMAP(data,nn.name="weighted.nn", reduction.name="wnn.umap",reduction.key="wnnUMAP_")
+data<-FindClusters(data, graph.name="wknn", resolution=0.4)
+
+
+pdf("~/myers/scAnalysis/plots/220405/Cultured_neuron_umap_filtered.pdf")
+DimPlot(data, reduction="wnn.umap", group.by="day")+scale_fill_manual(values=c("#09179B","#37C5E8", "#1ABE76"))
+dev.off()
+pdf("~/myers/scAnalysis/plots/220405/Cultured_neuron_umap_cluster_filtered.pdf")
+DimPlot(data, reduction="wnn.umap")
+dev.off()
+
+```
+
+
+### DEGs and markers (Fig1)
+```{r}
+DefaultAssay(data)<-"RNA"
+data<-NormalizeData(data)
+data<-FindClusters(data, graph.name="wknn", resolution=0.3)
+
+
+
+data$Cluster<-ifelse(data$seurat_clusters %in% c(1,3),1,ifelse(data$seurat_clusters==2,2,3))
+avgExp<-as.data.frame(AverageExpression(data, features=g2$genes, assay="RNA", group.by="Cluster"))
+scale<-t(apply(avgExp, 1, scale))
+colnames(scale)<-c("C1","C2","C3")
+data$order<-ifelse(data$Cluster==2 & data$day !="NPC",3, ifelse(data$Cluster==3,2,1))
+data$order<-factor(data$order, levels=c(1,2,3))
+
+Idents(data)<-data$order
+degs<-FindAllMarkers(data)
+degs_sig<-degs[which(degs$p_val_adj<0.01 & degs$avg_log2FC>0.5),]
+write.csv(degs_sig, "~/myers/scAnalysis/NPC_multi/XCL4_finalClusters_DEGs.csv")
+
+ra<-rowAnnotation(cluster=g2$Term)
+ht2=Heatmap(scale, cluster_rows=T,show_row_dend=F,cluster_columns=F,col=colorRamp2(c(-1,0,2),viridis(3)),  name="Avg Exp",  show_column_names=T, show_row_names=T, column_title=NULL,row_names_gp = gpar(fontsize = 10), row_names_side = "left", left_annotation=ra)
+
+pdf("~/myers/scAnalysis/plots/XCL4_markers_byTimePoint.pdf", width=8, height=6)
+ht2
+dev.off()
+
+
+pdf("~/myers/scAnalysis/plots/XCL4_UMAP_w_vlnplot_markers_ordered.pdf", width=7, height=6)
+p1<-DimPlot(data, reduction="wnn.umap", group.by="order",cols=c("navy","dodgerblue","skyblue"), label=T, label.size=7, repel=T)&theme(legend.position="none")
+p2<-VlnPlot(data, features=c("SOX5", "DCX","NEAT1"), group.by="order",pt.size=0, cols=c("navy","dodgerblue","skyblue"), ncol=1)&ylab("")
+p1+p2
+dev.off()
+
+pdf("~/myers/scAnalysis/plots/XCL4_UMAP_w_vlnplot_markers_ordered_wMAPT.pdf", width=7, height=7)
+p1<-DimPlot(data, reduction="wnn.umap", group.by="order",cols=c("navy","dodgerblue","skyblue"),)&theme(legend.position="none")&ggtitle("")
+p2<-VlnPlot(data, features=c("SOX5", "NEAT1","DCX","MAPT"), group.by="order",pt.size=0, cols=c("navy","dodgerblue","skyblue"), ncol=1, combine=T)&ylab("")&xlab("Cluster")
+p1+p2
+dev.off()
+
+
+pdf("~/myers/scAnalysis/plots/XCL4_UMAP_w_vlnplot_MAPT_ordered.pdf", width=7, height=6)
+p1<-DimPlot(data, reduction="wnn.umap", group.by="order",cols=c("navy","dodgerblue","skyblue"))&theme(legend.position="none")
+p2<-VlnPlot(data, features="MAPT", group.by="order",pt.size=0, cols=c("navy","dodgerblue","skyblue"), ncol=1)&ylab("")
+ p1+p2
+dev.off()
+
+
+pr<-as.data.frame(prop.table(table(data$day, data$order),2))
+pr$Var2<-factor(pr$Var2, levels=c(3,2,1))
+pdf("~/myers/scAnalysis/plots/Prop_day_inCluster.pdf", width=3,height=4)
+ggplot(pr, aes(y=Var2, x=Freq, fill=Var1))+geom_bar(stat="identity")+theme_classic()+scale_fill_manual(values=c("rosybrown","salmon","darkred"))
+dev.off()
+
+```
+
+
+
+#### GO
+```{r}
+degs_sig<-read.csv("~/myers/scAnalysis/NPC_multi/XCL4_finalClusters_DEGs.csv")
+dbs <- c("GO_Molecular_Function_2021", "GO_Cellular_Component_2021", "GO_Biological_Process_2021", "KEGG_2021_Human","Azimuth_Cell_Types_2021")
+
+
+go1<-enrichr(degs_sig[which(degs_sig$avg_log2FC>0 & degs_sig$cluster==1),]$gene, dbs)
+go2<-enrichr(degs_sig[which(degs_sig$avg_log2FC>0 & degs_sig$cluster==2),]$gene, dbs)
+go3<-enrichr(degs_sig[which(degs_sig$avg_log2FC>0 & degs_sig$cluster==3),]$gene, dbs)
+
+head(go1[["GO_Biological_Process_2021"]])
+head(go2[["GO_Biological_Process_2021"]])
+head(go3[["GO_Biological_Process_2021"]])
+
+
+head(go1[["GO_Molecular_Function_2021"]])
+head(go2[["GO_Molecular_Function_2021"]])
+head(go3[["GO_Molecular_Function_2021"]])
+
+```
+
+
+ 
+
+### Fig1: Link Plot
+```{r}
+xcl4_links<-readRDS("~/myers/scAnalysis/NPC_multi/210330_links_aggr.rds")
+xcl4_mapt<-xcl4_links[which(xcl4_links$gene=="MAPT"),]
+peaks<-paste0(seqnames(xcl4_mapt),"-",start(xcl4_mapt)-1,"-", end(xcl4_mapt))
+
+acc<-as.data.frame(AverageExpression(xcl4, assay="ATAC", group.by="day", features=peaks))
+xcl4_mapt$group<-ifelse(end(xcl4_mapt) %in% c(45043641,45906810), "Diff", ifelse(end(xcl4_mapt)==45191396, "day21","common"))
+
+
+
+
+
+signac_form<-as.data.frame(xcl4_mapt)[,-c(1,2,3)]
+colnames(signac_form)[c(7,8,9)]<-c("seqnames","start","end")
+signac.gr<-GRanges(signac_form)
+
+gene="MAPT"
+
+tmp.gr<-signac.gr[which(signac.gr$gene==gene),]
+tmp.gr$group2<-ifelse(tmp.gr$group=="Diff",0,
+                         ifelse(tmp.gr$group=="common",1,2))
+tmp.gr$group2<-1
+
+min.cutoff<-min(tmp.gr$score)*2
+min.cutoff<-ifelse(min.cutoff<0, min.cutoff, 0)
+max.cutoff<-max(tmp.gr$score)*2
+Idents(xcl4)<-xcl4$day
+
+
+region<-GRanges("chr17:44900000-46900000")
+Idents(xcl4)<-xcl4$Cluster
+xcl4$order<-ifelse(xcl4$Cluster==2 & xcl4$day !="NPC",3, ifelse(xcl4$Cluster==3,2,1))
+xcl4$order<-factor(xcl4$order, levels=c(1,2,3))
+Idents(xcl4)<-xcl4$order
+cov_plot<-CoveragePlot(object=xcl4, region=region,  assay="ATAC",annotation=F,window=4000,peaks=F, links=F, ymax=5000)&scale_fill_manual(values=c("navy","dodgerblue","skyblue"))
+                       
+ DefaultAssay(xcl4)<-"ATAC"                      
+link_plotA <- LinkPlot.height(tmp.gr, region=region, min.cutoff=min.cutoff, max.cutoff=max.cutoff)+ylab("Score")
+expr_plot <- ExpressionPlot(object = xcl4,features = gene,assay = "RNA")&scale_fill_manual(values=c("navy","dodgerblue","skyblue"))
+gene_plot<-AnnotationPlot(data, region=region)
+
+
+p<-CombineTracks(plotlist=list(cov_plot,link_plotA, gene_plot),expression.plot=expr_plot, widths=c(8,1), heights=c(4,2,2))
+pdf(paste0("~/myers/scAnalysis/plots/MAPT_XCL4_linkPlot_byOrderedCluster.pdf"), width=8, height=8)
+p
+dev.off()
+
+
+
+
+
+
+
+
+df<-data.frame(mapt=xcl4@assays$RNA@data["MAPT",], day=xcl4$day, Cluster=xcl4$Cluster)
+df$day<-factor(df$day, levels=rev(c("NPC","day14","day21")))
+df$Cluster<-factor(df$Cluster)
+pdf("~/myers/scAnalysis/plots/XCL4_MAPT_expression_byCluster.pdf", width=3,height=5)
+ggplot(df, aes(y=Cluster, x=mapt, fill=Cluster))+geom_boxplot()+scale_fill_manual(values=c("navy","dodgerblue","skyblue"))+theme_classic()+xlab("Normalized Expression")+ylab("")+theme(legend.position="none")
+dev.off()
+
+
+
+xcl4$bin<-paste0(xcl4$day, "-",xcl4$Cluster )
+Idents(xcl4)<-xcl4$Cluster
+region<-GRanges("chr17:45190558-45191396")
+region<-resize(region, width=2500, fix="center")
+
+pdf("~/myers/scAnalysis/plots/XCL4_nonNPC_ATAC_peak_MAPTlink.pdf")
+Idents(xcl4)<-xcl4$day
+p1=CoveragePlot(object=xcl4, region=region,  assay="ATAC",annotation=F,window=200,peaks=F, links=F, )&scale_fill_manual(values=c("rosybrown2","salmon","darkred"))
+Idents(xcl4)<-xcl4$Cluster
+p2=CoveragePlot(object=xcl4, region=region,  assay="ATAC",annotation=F,window=200,peaks=F, links=F, )&scale_fill_manual(values=c("navy","dodgerblue","skyblue"))
+p1+p2
+dev.off()
+```
+
+chr17-45042887-45043641   not NPC
+chr17-45190558-45191396   only day21
+chr17-45905892-45906810   not NPC
+
+
+
+#### Dist to TSS (S2)
+```{r}
+dist<-as.data.frame(abs(xcl4_links$signac.start-xcl4_links$signac.end))
+
+c2<-GRanges(read.csv("~/myers/scAnalysis/MAPT_links/ALL_1Mb_links.csv"))
+dist<-data.frame(value=c(abs(c2$signac.start-c2$signac.end),abs(xcl4_links$signac.start-xcl4_links$signac.end)), variable=c(rep("Tissue",length(c2)), rep("XCL4",length(xcl4_links))))
+
+pdf("~/myers/scAnalysis/plots/AllGene_distanceToTSS_XCL4_DLPFC.pdf")
+ggplot(dist[which(dist$value<1000000),], aes(x=variable,y=value,fill=variable))+geom_boxplot(alpha=0.9)+theme_classic()+scale_fill_manual(values=c("skyblue3","lavender"))+ylab("Dist to TSS (bp)")+theme(axis.text=element_text(size=6))+theme(axis.text=element_text(size=10),axis.title=element_text(size=15), legend.position="none")
+dev.off()
+
+
+xcl4_mapt<-xcl4_links[which(xcl4_links$gene=="MAPT"),]
+c2_mapt<-c2[which(c2$gene=="MAPT"),]
+dist<-data.frame(value=c(abs(c2_mapt$signac.start-c2_mapt$signac.end),abs(xcl4_mapt$signac.start-xcl4_mapt$signac.end)), variable=c(rep("Tissue",length(c2_mapt)), rep("XCL4",length(xcl4_mapt))))
+
+pdf("~/myers/scAnalysis/plots/MAPT_distanceToTSS_XCL4_DLPFC_violin.pdf", width=4,height=6)
+ggplot(dist[which(dist$value<1000000),], aes(x=variable,y=value,fill=variable))+geom_violin(alpha=0.9)+theme_classic()+scale_fill_manual(values=c("skyblue3","lavender"))+ylab("Link Distance to MAPT TSS (bp)")+theme(axis.text=element_text(size=10),axis.title=element_text(size=15), legend.position="none")
+dev.off()
+
+
+
+
+dist<-data.frame(value=c(abs(c2$signac.start-c2$signac.end),abs(xcl4_links$signac.start-xcl4_links$signac.end)), variable=c(rep("Tissue",length(c2)), rep("XCL4",length(xcl4_links))))
+dist$gene<-c(c2$gene, xcl4_links$gene)
+dist_byGene<-aggregate(value~gene+variable,dist,mean) 
+A<-aggregate(value~variable,dist_byGene, mean)
+B<-aggregate(value~variable,dist_byGene, sd)
+C<-dist_byGene[which(dist_byGene$gene=="MAPT"),]
+
+pnorm(C$value[1], mean=A$value[1], sd=B$value[1], lower.tail=F)
+pnorm(C$value[2], mean=A$value[2], sd=B$value[2], lower.tail=F)
+
+#MAPT is not an outlier for dist TSS
+
+
+
+dist<-as.data.frame(abs(xcl4_links$signac.start-xcl4_links$signac.end))
+dist$MAPT<-ifelse(xcl4_links$gene=="MAPT", "MAPT","Global")
+colnames(dist)[1]<-"Dist"
+pdf("~/myers/scAnalysis/plots/DistTSS_xcl4_links_global_MAPT.pdf", width=4, height=5)
+ggplot(dist[which(dist$Dist<1000000),], aes(y=Dist, x=MAPT,fill=MAPT))+geom_boxplot()+geom_violin(alpha=0.5)+ylab("Link Distance to TSS (bp)")+theme_classic()+scale_fill_manual(values=c("darkseagreen3", "honeydew"))+theme(legend.position="none")+xlab("")
+dev.off()
+
+dist<-as.data.frame(abs(m1$signac.start-m1$signac.end))
+dist$MAPT<-ifelse(m1$gene=="MAPT", "MAPT","Global")
+colnames(dist)[1]<-"Dist"
+pdf("~/myers/scAnalysis/plots/DistTSS_tissue_global_MAPT.pdf", width=4, height=5)
+ggplot(dist[which(dist$Dist<1000000),], aes(y=Dist, x=MAPT,fill=MAPT))+geom_boxplot()+geom_violin(alpha=0.5)+ylab("Link Distance to TSS (bp)")+theme_classic()+scale_fill_manual(values=c("darkseagreen3", "honeydew"))+theme(legend.position="none")+xlab("")
+dev.off()
+
+```
+
+#### Links Per Peak (S2)
+```{r}
+
+xcl4_links$peak<-paste0(seqnames(xcl4_links),"-",start(xcl4_links),"-",end(xcl4_links))
+c2$peak<-paste0(seqnames(c2),"-",start(c2),"-",end(c2))
+
+
+xcl4_maptP<-xcl4_links[which(xcl4_links$gene=="MAPT"),]$peak
+c2_maptP<-c2[which(c2$gene=="MAPT"),]$peak
+
+
+xcl4_keep<-xcl4_links[which(xcl4_links$peak %in% xcl4_maptP),]
+c2_keep<-c2[which(c2$peak %in% c2_maptP),]
+
+
+t1<-table(xcl4_keep$peak)
+t2<-table(c2_keep$peak)
+
+dist<-data.frame(value=c(t1,t2),variable=c(rep("XCL4",length(t1)),rep("Tissue",length(t2))))
+pdf("~/myers/scAnalysis/plots/MAPT_linksperMAPT_linked-peak_XCL4_DLPFC_violin.pdf", width=4, height=6)
+ggplot(dist, aes(x=variable,y=value,fill=variable))+geom_violin(alpha=0.9)+theme_classic()+scale_fill_manual(values=c("skyblue3","lavender"))+ylab("Links per MAPT-linked peak")+theme(axis.text=element_text(size=10), axis.title=element_text(size=15), legend.position="none")
+dev.off()
+
+
+t1<-table(xcl4_links$peak)
+t2<-table(c2$peak)
+dist<-data.frame(value=c(t1,t2),variable=c(rep("XCL4",length(t1)),rep("Tissue",length(t2))))
+pdf("~/myers/scAnalysis/plots/All_links_per_peak_XCL4_DLPFC.pdf")
+ggplot(dist, aes(x=variable,y=value,fill=variable))+geom_boxplot(alpha=0.9)+theme_classic()+scale_fill_manual(values=c("skyblue3","lavender"))+ylab("Links per peak")+theme(axis.text=element_text(size=10),axis.title=element_text(size=15), legend.position="none")
+dev.off()
+
+
+
+xcl4_links$peak<-paste0(seqnames(xcl4_links),"-",start(xcl4_links),"-",end(xcl4_links))
+tab<-as.data.frame(table(xcl4_links$peak))
+tab$MAPT<-ifelse(tab$Var1 %in% xcl4_links[which(xcl4_links$gene=="MAPT"),]$peak, "MAPT","Global")
+pdf("~/myers/scAnalysis/plots/LinksPerPeak_xcl4_links_global_MAPT.pdf", width=4, height=5)
+ggplot(tab, aes(y=Freq, x=MAPT,fill=MAPT))+geom_boxplot()+geom_violin(alpha=0.5)+ylab("Links per peak")+theme_classic()+scale_fill_manual(values=c("darkseagreen3", "honeydew"))+theme(legend.position="none")+xlab("")
+dev.off()
+
+m1$peak<-paste0(seqnames(m1),"-",start(m1),"-",end(m1))
+tab<-as.data.frame(table(m1$peak))
+tab$MAPT<-ifelse(tab$Var1 %in% m1[which(m1$gene=="MAPT"),]$peak, "MAPT","Global")
+pdf("~/myers/scAnalysis/plots/LinksPerPeak_tissue_global_MAPT.pdf", width=4, height=5)
+ggplot(tab, aes(y=Freq, x=MAPT,fill=MAPT))+geom_boxplot()+geom_violin(alpha=0.5)+ylab("Links per peak")+theme_classic()+scale_fill_manual(values=c("darkseagreen3", "honeydew"))+theme(legend.position="none")+xlab("")
+dev.off()
+
+```
+
+
+
+### Enc annot (Fig1, S3)
+
+```{r}
+m1<-GRanges(read.csv("~/myers/scAnalysis/MAPT_links/ALL_1Mb_links.csv"))
+
+
+enc.rs<-enc.rs[order(enc.rs$encodeLabel, decreasing=T),]
+enc.rs<-resize(enc.rs, fix="center", width=250)
+#
+over1<-as.data.frame(findOverlaps(mapt, enc.rs,minoverlap=100))
+over1<-over1[!duplicated(over1$queryHits),]
+mapt$annot<-"No Annotation"
+mapt[over1$queryHits,]$annot<-enc.rs[over1$subjectHits,]$encodeLabel
+mapt$annot<-ifelse(mapt$annot=="DNase-CTCF-only", "CTCF-only",m1$annot)
+df<-as.data.frame(prop.table(table(mapt$annot)))
+df$data<-"DLPFC"
+
+over1<-as.data.frame(findOverlaps(xcl4_mapt, enc.rs,minoverlap=100))
+over1<-over1[!duplicated(over1$queryHits),]
+xcl4_mapt$annot<-"No Annotation"
+xcl4_mapt[over1$queryHits]$annot<-enc.rs[over1$subjectHits,]$encodeLabel
+xcl4_mapt$annot<-ifelse(xcl4_mapt$annot=="DNase-CTCF-only", "CTCF-only",xcl4_mapt$annot)
+df2<-as.data.frame(prop.table(table(xcl4_mapt$annot)))
+df2$data<-"Cultured"
+
+df<-rbind(df,df2)
+
+
+
+
+df$Var1<-factor(df$Var1,levels=rev(c("PLS","pELS","dELS","DNase-H3K4me3","CTCF-only", "No Annotation")))
+pdf("~/myers/scAnalysis/plots/MAPT_link_annot_encode_ONLY.pdf", width=6, height=3)
+ggplot(df, aes(x=Freq, y=data, fill=Var1))+geom_bar(stat="identity")+xlab("Proportion of Linked Peaks")+ylab("Data Type")+theme_classic()+scale_fill_manual(values=c("red","orange","gold","lightpink","skyblue", "grey54"),limits=c("PLS","pELS","dELS","DNase-H3K4me3","CTCF-only", "No Annotation"), name="")+theme(legend.position="top", axis.text=element_text(size=12),axis.title=element_text(size=15), legend.text=element_text(size=10))
+dev.off()
+
+
+
+
+
+
+
+
+
+
+
+
+enc.rs<-enc.rs[order(enc.rs$encodeLabel, decreasing=T),]
+enc.rs<-resize(enc.rs, fix="center", width=250)
+over1<-as.data.frame(findOverlaps(xcl4_links, enc.rs,minoverlap=100))
+over1<-over1[!duplicated(over1$queryHits),]
+xcl4_links$annot<-"No Annotation"
+xcl4_links[over1$queryHits]$annot<-enc.rs[over1$subjectHits,]$encodeLabel
+xcl4_links$annot<-ifelse(xcl4_links$annot=="DNase-CTCF-only", "CTCF-only",xcl4_links$annot)
+xcl4_links$MAPT<-ifelse(xcl4_links$gene=="MAPT","MAPT","Global")
+df2<-as.data.frame(prop.table(table(xcl4_links$annot, xcl4_links$MAPT),2))
+df2$Var1<-factor(df2$Var1, levels=rev(c("PLS","pELS","dELS","DNase-H3K4me3","CTCF-only", "No Annotation")))
+pdf("~/myers/scAnalysis/plots/XCL4_annotation_global_MAPT.pdf", width=6, height=3)
+ggplot(df2, aes(x=Freq, y=Var2, fill=Var1))+geom_bar(alpha=0.85, color="black",stat="identity")+ylab("")+xlab("Proportion of Linked Peaks")+scale_fill_manual(values=c("red","orange","gold","lightpink","skyblue", "grey54"),limits=c("PLS","pELS","dELS","DNase-H3K4me3","CTCF-only", "No Annotation"), name="")+theme_classic()+theme(legend.position="top")+ylab("")
+dev.off()
+
+
+over1<-as.data.frame(findOverlaps(m1, enc.rs,minoverlap=100))
+over1<-over1[!duplicated(over1$queryHits),]
+m1$annot<-"No Annotation"
+m1[over1$queryHits]$annot<-enc.rs[over1$subjectHits,]$encodeLabel
+m1$annot<-ifelse(m1$annot=="DNase-CTCF-only", "CTCF-only",m1$annot)
+m1$MAPT<-ifelse(m1$gene=="MAPT","MAPT","Global")
+df2<-as.data.frame(prop.table(table(m1$annot, m1$MAPT),2))
+df2$Var1<-factor(df2$Var1, levels=rev(c("PLS","pELS","dELS","DNase-H3K4me3","CTCF-only", "No Annotation")))
+pdf("~/myers/scAnalysis/plots/Tissue_annotation_global_MAPT.pdf", width=6, height=3)
+ggplot(df2, aes(x=Freq, y=Var2, fill=Var1))+geom_bar(alpha=0.85, color="black",stat="identity")+ylab("")+xlab("Proportion of Linked Peaks")+scale_fill_manual(values=c("red","orange","gold","lightpink","skyblue", "grey54"),limits=c("PLS","pELS","dELS","DNase-H3K4me3","CTCF-only", "No Annotation"), name="")+theme_classic()+theme(legend.position="top")+ylab("")
+dev.off()
+
+
+```
+
+#### enrichments
+```{r}
+enc.rs<-enc.rs[order(enc.rs$encodeLabel, decreasing=T),]
+enc.rs<-resize(enc.rs, fix="center", width=500)
+over1<-as.data.frame(findOverlaps(xcl4_links, enc.rs,minoverlap=50))
+over1<-over1[!duplicated(over1$queryHits),]
+xcl4_links$annot<-"No Annotation"
+xcl4_links[over1$queryHits]$annot<-enc.rs[over1$subjectHits,]$encodeLabel
+xcl4_links$annot<-ifelse(xcl4_links$annot=="DNase-CTCF-only", "CTCF-only",xcl4_links$annot)
+
+
+
+xcl4<-readRDS("~/myers/scAnalysis/NPC_multi/210330_filtered_multi.rds")
+DefaultAssay(xcl4)<-"ATAC"
+ranges<-granges(xcl4)
+over1<-as.data.frame(findOverlaps(ranges, enc.rs,minoverlap=50))
+over1<-over1[!duplicated(over1$queryHits),]
+ranges$annot<-"No Annotation"
+ranges[over1$queryHits]$annot<-enc.rs[over1$subjectHits,]$encodeLabel
+ranges$annot<-ifelse(ranges$annot=="DNase-CTCF-only", "CTCF-only",ranges$annot)
+ranges2<-subsetByOverlaps(ranges, xcl4_links, invert=T)
+
+df<-data.frame(links=table(xcl4_links$annot), peaks=table(ranges2$annot))
+OR<-c()
+pval<-c()
+for(i in 1:length(unique(df$links.Var1))){
+  tmp<-as.matrix(rbind(df[i,c(2,4)], colSums(df[-i, c(2,4)])))
+  ft<-fisher.test(tmp)
+  OR<-c(OR, ft$estimate)
+  pval<-c(pval, ft$p.value)
+}
+```
+
+odds ratio odds ratio odds ratio odds ratio odds ratio odds ratio 
+ 0.2666529  0.7129079  0.5735509  0.4531327  1.5952736  6.1057860 
+
+
+0.000000e+00 8.271817e-269  4.737357e-42  0.000000e+00 1.917130e-144 0.000000e+00
+
+```{r}
+mapt<-GRanges(read.csv("~/myers/scAnalysis/MAPT_links/MAPT_1Mb_links.csv"))
+over1<-as.data.frame(findOverlaps(mapt, enc.rs,minoverlap=50))
+over1<-over1[!duplicated(over1$queryHits),]
+mapt$annot<-"No Annotation"
+mapt[over1$queryHits]$annot<-enc.rs[over1$subjectHits,]$encodeLabel
+mapt$annot<-ifelse(mapt$annot=="DNase-CTCF-only", "CTCF-only",mapt$annot)
+
+
+peak<-GRanges(read.csv("~/myers/scAnalysis/RINdrop/CTpeaks_wK27olap.csv"))
+over1<-as.data.frame(findOverlaps(peak, enc.rs,minoverlap=50))
+over1<-over1[!duplicated(over1$queryHits),]
+peak$annot<-"No Annotation"
+peak[over1$queryHits]$annot<-enc.rs[over1$subjectHits,]$encodeLabel
+peak$annot<-ifelse(peak$annot=="DNase-CTCF-only", "CTCF-only",peak$annot)
+
+
+
+df<-data.frame(links=c(0,table(mapt$annot)), peaks=table(peak$annot))
+OR<-c()
+pval<-c()
+for(i in 1:length(unique(df$peaks.Var1))){
+  tmp<-as.matrix(rbind(df[i,c(1,3)], colSums(df[-i, c(1,3)])))
+  ft<-fisher.test(tmp)
+  OR<-c(OR, ft$estimate)
+  pval<-c(pval, ft$p.value)
+}
+
+```
+
+
+
+
+# All noms
+```{r}
+
+
+#from HiC/loop_annotation
+Gluta.pairs$annot<-ifelse(Gluta.pairs$start1==45890001, Gluta.pairs$second_annot,Gluta.pairs$first_annot)
+GABA.pairs$annot<-ifelse(GABA.pairs$start1==45890001, GABA.pairs$second_annot,GABA.pairs$first_annot)
+Gluta.pairs$annot<-ifelse(Gluta.pairs$annot=="None","No Annotation", Gluta.pairs$annot)
+GABA.pairs$annot<-ifelse(GABA.pairs$annot=="None","No Annotation", GABA.pairs$annot)
+
+
+HiC.pairs2<-HiC.pairs[c("5193","5300"),]
+#first is CTCF-only and second was ELS but re-overlapped
+HiC.pairs2$annot<-c("CTCF-only","pELS")
+
+
+Gluta.pairs$annot<-factor(Gluta.pairs$annot, levels=c("PLS","pELS","dELS","CTCF-only","No Annotation"))
+GABA.pairs$annot<-factor(GABA.pairs$annot, levels=c("PLS","pELS","dELS","CTCF-only","No Annotation"))
+HiC.pairs2$annot<-factor(HiC.pairs2$annot, levels=c("PLS","pELS","dELS","CTCF-only","No Annotation"))
+
+
+###############################################################
+###############################################################
+#                  ChIP
+###############################################################
+###############################################################
+
+h3kme3<-readBigwig("/cluster/home/jtaylor/lindsay_chip-seq_project/ouputs/XCL4/XCL4_H3K4me3_neuron/signal/rep1/CBKLBANXX_s6_0_GSLv3-7_20_SL267310.crop_50-2bp.nodup_x_CBKLBANXX_s6_0_GSLv3-7_28_SL267316.crop_50-2bp.nodup.pval.signal.bigwig",  chrom="chr17", chromstart=44700000,chromend=47000000)
+
+h3k27ac<-readBigwig("/cluster/home/jtaylor/lindsay_chip-seq_project/ouputs/XCL4/XCL4_H3K27ac_neuron/signal/rep1/CBKLBANXX_s6_0_GSLv3-7_21_SL267311.crop_50-2bp.nodup_x_CBKLBANXX_s6_0_GSLv3-7_28_SL267316.crop_50-2bp.nodup.pval.signal.bigwig",  chrom="chr17", chromstart=44700000,chromend=47000000)
+
+h3kme1<-readBigwig("/cluster/home/jtaylor/lindsay_chip-seq_project/ouputs/XCL4/XCL4_H3K4me1_neuron/signal/rep1/CBKLBANXX_s6_0_GSLv3-7_19_SL267309.crop_50-2bp.nodup_x_CBKLBANXX_s6_0_GSLv3-7_28_SL267316.crop_50-2bp.nodup.pval.signal.bigwig",  chrom="chr17", chromstart=44700000,chromend=47000000)
+
+atac<-readBigwig("/cluster/home/lrizzardi/data_for_others/ATAC/signal/pooled-rep/SCT_Diff_2_basename_prefix.pooled.pval.signal.bigwig",  chrom="chr17", chromstart=44700000,chromend=47000000)
+
+
+###############################################################
+###############################################################
+#                   Other Noms
+###############################################################
+###############################################################
+# CapC & HiC: 19
+# tissue & culture scLinks: 65
+#Total: 77
+
+grna<-read.csv("~/myers/scAnalysis/MAPT_links/MAPT_TestedRegions_SuppTable_BBR-2.csv")
+mapt<-GRanges(read.csv("~/myers/scAnalysis/MAPT_links/MAPT_1Mb_links.csv"))
+xcl4_links<-readRDS("~/myers/scAnalysis/NPC_multi/210330_links_aggr.rds")
+xcl4_mapt<-xcl4_links[which(xcl4_links$gene=="MAPT"),]
+
+grna$start<-grna$Design_Region_Start_hg38
+grna$end<-grna$Design_Region_End_hg38
+grna<-grna[which(is.na(grna$end)==F),]
+grna$Strand<-"+"
+grna<-GRanges(grna)
+start<-c(Gluta.pairs[which(Gluta.pairs$start1==45890001),]$start2, Gluta.pairs[which(Gluta.pairs$start2==45890001),]$start1,
+         GABA.pairs[which(GABA.pairs$start1==45890001),]$start2, GABA.pairs[which(GABA.pairs$start2==45890001),]$start1,
+         HiC.pairs2$start1)
+end<-c(Gluta.pairs[which(Gluta.pairs$end1==45895000),]$end2, Gluta.pairs[which(Gluta.pairs$end2==45895000),]$end1,
+         GABA.pairs[which(GABA.pairs$end1==45895000),]$end2, GABA.pairs[which(GABA.pairs$end2==45895000),]$end1,
+         HiC.pairs2$end1)
+df<-data.frame(start=start, end=end)
+df$seqnames<-"chr17"
+gr<-GRanges(df)
+Noms<-c(gr,mapt,xcl4_mapt)
+over<-findOverlaps(grna, Noms)
+
+other<-unique(grna[-queryHits(over)])
+
+###############################################################
+###############################################################
+#               Other Annotations
+###############################################################
+###############################################################
+
+enc$encodeLabel<-as.character(enc$encodeLabel)
+over1<-findOverlaps(other, enc, maxgap=200)
+other$annot<-"No Annotation"
+other[queryHits(over1)]$annot<-enc[subjectHits(over1)]$encodeLabel
+other<-other[!duplicated(other$Midpoint.of.target.region),]
+tab<-as.data.frame(prop.table(table(other$annot)))
+
+tab$Var1<-factor(tab$Var1, levels=rev(c("PLS","pELS","dELS","DNase-H3K4me3","CTCF-only", "No Annotation")))
+
+
+pdf("~/myers/scAnalysis/plots/Other_nominations_encode_annotation.pdf", width=5, height=2)
+ggplot(tab, aes(y=as.factor(1),x=Freq, fill=Var1))+geom_bar(alpha=0.85, color="black",stat="identity")+scale_fill_manual(values=c("orange","lightgoldenrodyellow", "grey54"),limits=c("pELS","dELS", "No Annotation"),name="")+theme_classic()+ylab("Other Nomination")+xlab("Proportion of Regions")+theme(axis.text.y=element_blank(), legend.position="top")
+dev.off()
+
+###############################################################
+###############################################################
+#               Reformat scLinks
+###############################################################
+###############################################################
+
+mapt.df<-as.data.frame(resize(mapt, width=2000, fix="center"))
+tmp<-data.frame(chrom1="chr17", start1=ifelse(mapt.df$signac.end==45894382, mapt.df$start, 45893982),
+                end1=ifelse(mapt.df$signac.end==45894382, mapt.df$end, 45895583), chrom2="chr17",
+                start2=ifelse(mapt.df$signac.end!=45894382, mapt.df$start, 45893982),
+                end2=ifelse(mapt.df$signac.end!=45894382, mapt.df$end, 45895583))
+tmp$annot<-mapt.df$annot
+tmp$annot<-factor(tmp$annot, levels=c("PLS","pELS","dELS","DNase-H3K4me3","No Annotation"))
+tmp$score<-ifelse(mapt.df$group=="AD", mapt.df$score.x, ifelse(mapt.df$group=="Ctrl",mapt.df$score.y, (mapt.df$score.x+mapt.df$score.y)/2))
+tmp$score<-abs(tmp$score)
+
+mapt.df<-as.data.frame(resize(xcl4_mapt, width=2000, fix="center"))
+tmp2<-data.frame(chrom1="chr17", start1=ifelse(mapt.df$signac.end==45894382, mapt.df$start, 45893982),
+                end1=ifelse(mapt.df$signac.end==45894382, mapt.df$end, 45895583), chrom2="chr17",
+                start2=ifelse(mapt.df$signac.end!=45894382, mapt.df$start, 45893982),
+                end2=ifelse(mapt.df$signac.end!=45894382, mapt.df$end, 45895583))
+tmp2$annot<-mapt.df$annot
+tmp2$annot<-factor(tmp2$annot, levels=c("PLS","pELS","dELS","DNase-H3K4me3","No Annotation"))
+tmp2$score<-abs(mapt.df$score)
+
+###############################################################
+###############################################################
+###############################################################
+###############################################################
+
+
+```
+
+
+
+## shared
+```{r}
+Gluta.pairs$annot<-ifelse(Gluta.pairs$start1==45890001, Gluta.pairs$second_annot,Gluta.pairs$first_annot)
+GABA.pairs$annot<-ifelse(GABA.pairs$start1==45890001, GABA.pairs$second_annot,GABA.pairs$first_annot)
+Gluta.pairs$annot<-ifelse(Gluta.pairs$annot=="None","No Annotation", Gluta.pairs$annot)
+GABA.pairs$annot<-ifelse(GABA.pairs$annot=="None","No Annotation", GABA.pairs$annot)
+
+HiC.pairs2<-HiC.pairs[c("5193","5300"),]
+
+start<-ifelse(Gluta.pairs$start1==45890001, Gluta.pairs$start2,Gluta.pairs$start1)
+end<-ifelse(Gluta.pairs$start1==45890001, Gluta.pairs$end2,Gluta.pairs$end1)
+Gluta.gr<-GRanges(data.frame(chr="chr17",start=start,end=end))
+start<-ifelse(GABA.pairs$start1==45890001, GABA.pairs$start2,GABA.pairs$start1)
+end<-ifelse(GABA.pairs$start1==45890001, GABA.pairs$end2,GABA.pairs$end1)
+GABA.gr<-GRanges(data.frame(chr="chr17",start=start,end=end))
+tmp<-HiC.pairs2[,1:3]
+colnames(tmp)<-c("chr","start","end")
+HiC.gr<-GRanges(tmp)
+
+
+
+Gluta.gr$type<-"Gluta"
+GABA.gr$type<-"GABA"
+HiC.gr$type<-"HiC"
+mapt$type<-"tissue"
+xcl4_mapt$type<-"cultured"
+
+all<-c(Gluta.gr,GABA.gr, HiC.gr, mapt, xcl4_mapt)
+over1<-findOverlaps(all[which(all$type=="Gluta")], all[which(all$type!="Gluta")] )
+over2<-findOverlaps(all[which(all$type=="GABA")], all[which(all$type!="GABA")] )
+over3<-findOverlaps(all[which(all$type=="HiC")], all[which(all$type!="HiC")] )
+over4<-findOverlaps(all[which(all$type=="tissue")], all[which(all$type!="tissue")] )
+over5<-findOverlaps(all[which(all$type=="cultured")], all[which(all$type!="cultured")] )
+
+
+
+other<-subsetByOverlaps(grna, all, invert=T)
+other<-unique(other)
+tab<-as.data.frame(other) %>% group_by(H3K27ac,H3K4me1,H3K4me3,ATAC,BrainTF_H3K4me1)%>% count()
+```
+
+
+DLPFC tissue
+9
+Cultured Neurons 
+2
+Gluta CapC
+6
+GABA CapC
+4
+HiC
+1
+
+46/69 regions nominated by sc, capc, or hic overlapped BrainTF data
+7/25 regions that are classified as "chromatin annotation" overlap BrainTF data
+
+
+
+
+---
+---
+# FIG 4
+
+# diff vs undiff CapC
+```{R}
+capC_raw<-read.table("/cluster/projects/ADFTD/BrightFocus-Working/ForNPCvsNeuron/out_12_rawpileup.txt")
+rownames(capC_raw)<-capC_raw$V1
+capC_raw<-capC_raw[,-1]
+
+cn<-c("BC1_undiff_1","BC1_undiff_2","BC1_undiff_3","SCT_undiff_1","SCT_undiff_2","SCT_undiff_3","BC1_diff_1","BC1_diff_2","BC1_diff_3","SCT_diff_1","SCT_diff_2","SCT_diff_3")
+colnames(capC_raw)<-cn
+meta<-data.frame(cell_line=sapply(strsplit(cn,"_"),`[`,1), diff=sapply(strsplit(cn,"_"),`[`,2))
+rownames(meta)<-cn
+
+
+ dds<-DESeqDataSetFromMatrix(countData=capC_raw, colData=meta, design=~diff+cell_line)
+  dds<-DESeq(dds)
+  res<-results(dds, contrast=c("diff","diff","undiff"))
+sig<-res[which(res$padj<0.05),]
+rn<-rownames(sig)
+sig$seqnames<-sapply(strsplit(rn, "_"),`[`,1)
+sig$start<-sapply(strsplit(rn, "_"),`[`,2)
+sig$end<-sapply(strsplit(rn, "_"),`[`,3)
+sig<-GRanges(sig) 
+  
+  
+  
+# DESeq2 on counts
+cpm<-read.table("/cluster/projects/ADFTD/BrightFocus-Working/ForNPCvsNeuron/out_12_bin_500_1000.txt")
+rownames(cpm)<-cpm$V1
+cpm<-cpm[,-1]
+cn<-c("BC1_undiff_1","BC1_undiff_2","BC1_undiff_3","SCT_undiff_1","SCT_undiff_2","SCT_undiff_3","BC1_diff_1","BC1_diff_2","BC1_diff_3","SCT_diff_1","SCT_diff_2","SCT_diff_3")
+colnames(cpm)<-cn
+#for some reads, count was split between bins so .5 of a count is there
+cpm2<-apply(cpm, 2, as.numeric)
+rownames(cpm2)<-rownames(cpm)
+cpm<-as.matrix(cpm2)*10
+cpm[is.na(cpm)]<-0
+meta<-data.frame(cell_line=sapply(strsplit(cn,"_"),`[`,1), diff=sapply(strsplit(cn,"_"),`[`,2))
+rownames(meta)<-cn
+dds<-DESeqDataSetFromMatrix(countData=cpm, colData=meta, design=~diff+cell_line)
+dds<-DESeq(dds)
+res<-results(dds, contrast=c("diff","diff","undiff"))
+
+rn<-rownames(res)
+res$seqnames<-sapply(strsplit(rn, "_"),`[`,1)
+res$start<-as.numeric(sapply(strsplit(rn, "_"),`[`,2))+1
+res$end<-sapply(strsplit(rn, "_"),`[`,3)
+res<-res[which(res$seqnames!="track"),]
+res<-GRanges(res) 
+res$padj<-ifelse(is.na(res$padj), 1, res$padj)
+#format for bw
+res$score<-sign(res$log2FoldChange)* -log10(res$padj)
+seqlengths(res)<-84276897
+res2<-subsetByOverlaps(res, GRanges("chr17:45894000"), maxgap=1000000)
+write.csv(as.data.frame(res2),"~/myers/MAPT_project/differential_capC/Neuron_NPC_bin500_DESEq2.csv")
+export(res[,7],  "~/myers/MAPT_project/differential_capC/Neuron_NPC_bin_2500_directional_p.signal.bw", format="bw")
+```
+
+
+## make 500bp bw
+```{r}
+cpm<-read.table("/cluster/projects/ADFTD/BrightFocus-Working/ForNPCvsNeuron/out_12_bin_500_1000_CPM_Corrected.txt")
+cpm<-read.table("/cluster/projects/ADFTD/BrightFocus-Working/ForNPCvsNeuron/out_12_bin_2500_5000_CPM_Corrected.txt")
+
+rownames(cpm)<-cpm$V1
+cpm<-cpm[,-1]
+cn<-c("BC1_undiff_1","BC1_undiff_2","BC1_undiff_3","SCT_undiff_1","SCT_undiff_2","SCT_undiff_3","BC1_diff_1","BC1_diff_2","BC1_diff_3","SCT_diff_1","SCT_diff_2","SCT_diff_3")
+colnames(cpm)<-cn
+rn<-rownames(cpm)
+cpm$seqnames<-sapply(strsplit(rn, "_"),`[`,1)
+cpm$start<-as.numeric(sapply(strsplit(rn, "_"),`[`,2))+1
+cpm$end<-sapply(strsplit(rn, "_"),`[`,3)
+cpm<-GRanges(cpm) 
+cpm$meanUndiff<-rowMeans(as.matrix(mcols(cpm)[,1:6]), na.rm=T)
+cpm$meanDiff<-rowMeans(as.matrix(mcols(cpm)[,7:12]), na.rm=T)
+#cpm$score<-log2(cpm$meanDiff/cpm$meanUndiff)
+cpm$score<-cpm$meanDiff-cpm$meanUndiff
+seqlengths(cpm)<-84276897
+#export(cpm[,15], "~/myers/MAPT_project/differential_capC/Neuron_NPC_mean_fc.signal.bw", format="bw")
+export(cpm[,15], "~/myers/MAPT_project/differential_capC/Neuron_NPC_bin_2500_5000_mean_difference.signal.bw", format="bw")
+
+
+```
+
+
+
+```{r}
+
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+library(org.Hs.eg.db)
+
+capC_FC<-readBigwig("~/myers/MAPT_project/differential_capC/Neuron_NPC_bin_500_directional_p.signal.bw",  chrom="chr17", chromstart=44700000,chromend=47000000)
+capC_FC$score<-ifelse(capC_FC$score==Inf, 10, capC_FC$score)
+capC_FC$score<-ifelse(capC_FC$score== -Inf, -10, capC_FC$score)
+
+params_a <- pgParams(chrom = "chr17", chromstart = 44890000, chromend = 46890000, assembly = "hg38",x =0.5, width = 5.5, just = c("left", "top"), default.units ="inches")
+
+
+
+DefaultAssay(xcl4)<-"ATAC"
+annot<-Annotation(xcl4)
+annot<-annot[which(annot$gene_biotype=="protein_coding"),]
+annot<-annot[!grepl("AC1", annot$gene_name),]
+Annotation(xcl4)<-annot
+region<-GRanges("chr17:44890000-46890000")
+gene_plot<-AnnotationPlot(xcl4, region=region)&theme_void()
+
+
+
+
+pdf("~/myers/scAnalysis/plots/Differential_CapC_plotgardener_bin_500_directional_pvalue.pdf", width=7, height=5)
+pageCreate(width = 7, height = 5, default.units = "inches", showGuides=F)
+
+p<-plotSignal(capC_FC, params=params_a,chrom="chr17", negData=T,height=0.8,y=0.6, fill=c("red","blue"), linecolor=c("red","blue"))
+annoYaxis(plot = p, at = c(-2,2), axisLine=T, params=pgParams(fontsize = 6))
+plotText(label = "Neuron v NPC CapC 500bp bin", fontcolor = "#37a7db", fontsize = 8,
+            y = 0.3, just = c("left","top"), default.units = "inches", params=params_a)
+
+tmp<-GRanges(capC_FC[which(abs(capC_FC$score) >2),])
+tmp<-reduce(tmp)
+p1<-Bed_GWASPlot(tmp,region=region)&theme_void()
+#plotGG(p1, params=params_a, height=0.2, y=1.8)
+plotRanges(capC_FC[which(abs(capC_FC$score) >2),], params=params_a, y=1.7, height=0.2, fill="black",spaceWidth=0.01, limitLabel=F, collapse=T, wboxHeight=unit(4,"mm"))
+plotGG(gene_plot, params=params_a, height=2, y=1.8)
+
+#plotGenes(params = params_a,y = 2, height = 0.5)
+
+plotGenomeLabel(params=params_a,
+    x = 0.5, y = 4, length = 5.5)
+
+dev.off()
+
+
+```
+
+
+
+
+# GABA vs Gluta
+```{r}
+
+GABA1 <- readHic(file = "/cluster/home/aanderson/myers/capC/GABA/SL471414//aligned/inter_30.hic",
+    resolution = 10000, chromstart=44000000,chromend=47000000,res_scale = "BP", norm = "KR", matrix="o", chrom="17")
+
+GABA2 <- readHic(file = "/cluster/home/aanderson/myers/capC/GABA/SL471415//aligned/inter_30.hic",
+    chrom = "17", assembly = "hg38",
+    resolution = 10000, chromstart=44000000,chromend=47000000, res_scale = "BP", norm = "KR", matrix="o")
+GABA3 <- readHic(file = "/cluster/home/aanderson/myers/capC/GABA/SL471416//aligned/inter_30.hic",
+    chrom = "17", assembly = "hg38",
+    resolution = 10000, chromstart=44000000,chromend=47000000, res_scale = "BP", norm = "KR", matrix="o")
+
+
+GABA1$region<-ifelse(GABA1$`17_A`==45890000, GABA1$`17_B`, ifelse(GABA1$`17_B`==45890000, GABA1$`17_A`, "drop"))
+GABA1<-GABA1[which(GABA1$region!="drop"),]
+GABA2$region<-ifelse(GABA2$`17_A`==45890000, GABA2$`17_B`, ifelse(GABA2$`17_B`==45890000, GABA2$`17_A`, "drop"))
+GABA2<-GABA2[which(GABA2$region!="drop"),]
+GABA3$region<-ifelse(GABA3$`17_A`==45890000, GABA3$`17_B`, ifelse(GABA3$`17_B`==45890000, GABA3$`17_A`, "drop"))
+GABA3<-GABA3[which(GABA3$region!="drop"),]
+
+
+
+Gluta1 <- readHic(file = "/cluster/home/aanderson/myers/capC/Gluta/SL471411//aligned/inter.hic",
+    resolution = 10000, chromstart=44000000,chromend=47000000,res_scale = "BP", norm = "KR", matrix="o", chrom="17")
+
+Gluta2 <- readHic(file = "/cluster/home/aanderson/myers/capC/Gluta/SL471412//aligned/inter.hic",
+    chrom = "17", assembly = "hg38",
+    resolution = 10000, chromstart=44000000,chromend=47000000, res_scale = "BP", norm = "KR", matrix="o")
+Gluta3 <- readHic(file = "/cluster/home/aanderson/myers/capC/Gluta/SL471413//aligned/inter.hic",
+    chrom = "17", assembly = "hg38",
+    resolution = 10000, chromstart=44000000,chromend=47000000, res_scale = "BP", norm = "KR", matrix="o")
+
+
+Gluta1$region<-ifelse(Gluta1$`17_A`==45890000, Gluta1$`17_B`, ifelse(Gluta1$`17_B`==45890000, Gluta1$`17_A`, "drop"))
+Gluta1<-Gluta1[which(Gluta1$region!="drop"),]
+Gluta2$region<-ifelse(Gluta2$`17_A`==45890000, Gluta2$`17_B`, ifelse(Gluta2$`17_B`==45890000, Gluta2$`17_A`, "drop"))
+Gluta2<-Gluta2[which(Gluta2$region!="drop"),]
+Gluta3$region<-ifelse(Gluta3$`17_A`==45890000, Gluta3$`17_B`, ifelse(Gluta3$`17_B`==45890000, Gluta3$`17_A`, "drop"))
+Gluta3<-Gluta3[which(Gluta3$region!="drop"),]
+
+
+GABA1 <-GABA1[,3:4]
+GABA2 <-GABA2[,3:4]
+GABA3 <-GABA3[,3:4]
+Gluta1<-Gluta1[,3:4]
+Gluta2<-Gluta2[,3:4]
+Gluta3<-Gluta3[,3:4]
+
+
+colnames(GABA1)<-c("GABA1","region") 
+colnames(GABA2)<-c("GABA2","region") 
+colnames(GABA3)<-c("GABA3","region") 
+colnames(Gluta1)<-c("Gluta1","region")
+colnames(Gluta2)<-c("Gluta2","region")
+colnames(Gluta3)<-c("Gluta3","region")
+
+GABA1<-GABA1[order(GABA1$GABA1 ,decreasing=T),] 
+GABA2<-GABA2[order(GABA2$GABA2 ,decreasing=T),] 
+GABA3<-GABA3[order(GABA3$GABA3 ,decreasing=T),] 
+Gluta1<-Gluta1[order(Gluta1$Gluta1,decreasing=T),]
+Gluta2<-Gluta2[order(Gluta2$Gluta2,decreasing=T),]
+Gluta3<-Gluta3[order(Gluta3$Gluta3,decreasing=T),]
+
+
+GABA1<-GABA1[!duplicated(GABA1$region),] 
+GABA2<-GABA2[!duplicated(GABA2$region),] 
+GABA3<-GABA3[!duplicated(GABA3$region),] 
+Gluta1<-Gluta1[!duplicated(Gluta1$region),]
+Gluta2<-Gluta2[!duplicated(Gluta2$region),]
+Gluta3<-Gluta3[!duplicated(Gluta3$region),]
+
+rownames(GABA1) <-GABA1$region 
+rownames(GABA2) <-GABA2$region 
+rownames(GABA3) <-GABA3$region 
+rownames(Gluta1)<-Gluta1$region
+rownames(Gluta2)<-Gluta2$region
+rownames(Gluta3)<-Gluta3$region
+
+regions<-c(rownames(GABA1),rownames(GABA2) ,rownames(GABA3) ,rownames(Gluta1),rownames(Gluta2),rownames(Gluta3))
+regions<-unique(regions)
+
+GABA1<-  GABA1[regions,] 
+GABA2<-  GABA2[regions,] 
+GABA3<-  GABA3[regions,] 
+Gluta1<-Gluta1[regions,]
+Gluta2<-Gluta2[regions,]
+Gluta3<-Gluta3[regions,]
+
+
+CapC<-cbind(GABA1,GABA2,GABA3,Gluta1,Gluta2,Gluta3)
+CapC<-CapC[complete.cases(CapC),]
+CapC<-as.matrix(CapC[,c(1,3,5,7,9,11)])
+#CapC[is.na(CapC)]<-0
+CapC<-CapC*1000
+CapC<-round(CapC, digits=0)
+CapC<-CapC[!grepl("NA",rownames(CapC)),]
+
+meta<-data.frame(cell_type=c("GABA","GABA","GABA","Gluta","Gluta","Gluta"))
+rownames(meta)<-colnames(CapC)
+dds<-DESeqDataSetFromMatrix(countData=CapC, colData=meta, design=~cell_type)
+dds<-DESeq(dds)
+res<-results(dds, contrast=c("cell_type","Gluta","GABA"))
+res$start<-rownames(res)
+res$end<-as.numeric(res$start)+5000
+res$seqnames<-"chr17"
+res$padj<-ifelse(is.na(res$padj)==T,1,res$padj)
+res$score<- -log10(res$padj)* sign(res$log2FoldChange)
+res<-GRanges(res)
+
+
+
+
+region<-GRanges("chr17:44900000-46900000")
+df<-data.frame(start=seq(44900001,46900001-1000, by=5000), end=seq(44900000+1000,46900000, by=5000))
+df$seqnames<-"chr17"
+df<-GRanges(df)
+
+over<-findOverlaps(df,res)
+df$score<-0
+df[queryHits(over)]$score<-res[subjectHits(over)]$score
+seqlengths(df)<-84276897
+
+export(df,  "~/myers/MAPT_project/differential_capC/Gluta_GABA_differential_CapC_bin5000.bw", format="bw")
+
+```
+
+
+
+
+
+```{r}
+library(TxDb.Hsapiens.UCSC.hg38.knownGene)
+library(org.Hs.eg.db)
+
+capC_FC<-readBigwig("~/myers/MAPT_project/differential_capC/Gluta_GABA_differential_CapC_bin5000.bw",  chrom="chr17", chromstart=44700000,chromend=47000000)
+
+params_a <- pgParams(chrom = "chr17", chromstart = 44890000, chromend = 46890000, assembly = "hg38",x =0.5, width = 5.5, just = c("left", "top"), default.units ="inches")
+
+
+
+gene_plot<-AnnotationPlot(xcl4, region=region)&theme_void()
+
+
+pdf("~/myers/scAnalysis/plots/Differential_CapC_Gluta_GABA_bin_5000_directional_pvalue.pdf", width=7, height=5)
+pageCreate(width = 7, height = 5, default.units = "inches", showGuides=F)
+
+p<-plotSignal(capC_FC, params=params_a,chrom="chr17", negData=T,height=0.8,y=0.6, fill=c("red","blue"), linecolor=c("red","blue"))
+annoYaxis(plot = p, at = c(-2,2), axisLine=T, params=pgParams(fontsize = 6))
+plotText(label = "Gluta v GABA CapC 500bp bin", fontcolor = "#37a7db", fontsize = 8,
+            y = 0.3, just = c("left","top"), default.units = "inches", params=params_a)
+
+tmp<-GRanges(capC_FC[which(abs(capC_FC$score) >2),])
+tmp<-reduce(tmp)
+p1<-Bed_GWASPlot(tmp,region=region)&theme_void()
+#plotGG(p1, params=params_a, height=0.2, y=1.8)
+plotRanges(capC_FC[which(abs(capC_FC$score) >2),], params=params_a, y=1.7, height=0.2, fill="black",spaceWidth=0.01, limitLabel=F, collapse=T, wboxHeight=unit(4,"mm"))
+plotGG(gene_plot, params=params_a, height=2, y=1.8)
+
+#plotGenes(params = params_a,y = 2, height = 0.5)
+
+plotGenomeLabel(params=params_a,
+    x = 0.5, y = 4, length = 5.5)
+
+dev.off()
+
+```
+
+
+
+# Cell lines
+
+
+From MAPT batch4 
+7136-NC-0008_51
+7136-NC-0008_52
+7136-NC-0008_53
+
+```{r}
+
+
+counts<-read.table("/cluster/home/aanderson/myers/quantseq/221109_KOLF2.1J_prelim/summary_unique.tsv", header=T)
+
+gtf<-rtracklayer::import("~/myers/scAnalysis/genes.gtf")
+gtf<-gtf[which(gtf$type=="gene"),]
+conversion<-as.data.frame(gtf)[c(10,13)]
+counts<-merge(counts,conversion,by.x="id",by.y="gene_id")
+counts<-counts[!duplicated(counts$gene_name),]
+rownames(counts)<-counts$gene_name
+
+
+load("/cluster/home/aanderson/myers/MAPT_project/RNAseq/lexoRNAseq_NPCNeuron_TC_outs_list.Rvar")
+key<-list_outs$sample_key
+key<-key[which(key$days_differentiating %in% c(0,16)),]
+xcl4_counts<-list_outs$ord_gene_id_cpm_mat
+xcl4_counts<-as.data.frame(xcl4_counts[,key$sl_num])
+xcl4_counts$id<-rownames(xcl4_counts)
+xcl4_counts<-merge(xcl4_counts,conversion,by.x="id",by.y="gene_id")
+xcl4_counts<-xcl4_counts[!duplicated(xcl4_counts$gene_name),]
+rownames(xcl4_counts)<-xcl4_counts$gene_name
+NPC<-rowMeans(xcl4_counts[,2:3])
+day14<-rowMeans(xcl4_counts[,4:5])
+
+bri<-counts[,18:24]
+cpm<-cpm(bri)
+NGN2<-rowMeans(cpm[,1:3])
+KOLF2.1<-rowMeans(cpm[,4:5])
+Gluta<-rowMeans(cpm(ALL_counts[,c("7136.NC.0008_51","7136.NC.0008_52","7136.NC.0008_53")])) #this is pulled from MAPT RNAseq
+df<-data.frame(gene=names(Gluta),XCL4_NPC=NPC[names(Gluta)], XCL4_BrainPhys_14days=day14[names(Gluta)], KOLF2.1J_BrainPhys_14days=KOLF2.1[names(Gluta)], KOLF2.1J_NGN2=NGN2[names(Gluta)], Gluta=Gluta )
+
+
+
+df2<-df[which(df$gene %in% c("MAPT","NES", "SYT1","AQP4","MBP","TREM2","FLT1")),]
+df2<-df2[c(3,2,1,6,4,7,5),]
+rownames(df2)<-c("MAPT", "NPC (NES)", "Neuron (SYT1)","Ast (AQP4)","Olig (MBP)", "Mic (TREM2)", "End (FLT1)")
+
+pdf("~/myers/scAnalysis/plots/Cell_line_marker_heatmap.pdf", width=4, height=6)
+Heatmap(as.matrix(df2[,-c(1,4)]), cluster_rows=F, cluster_columns=F, col=colorRamp2(c(0,50,200,400), viridis(4)),row_names_side="left", name="CPM" )
+dev.off()
+
+
+
+```
+
+
+
+# Neuron region
+```{r}
+region<-GRanges("chr17:45224000-45320000")
+CTCF_neuron<-BigwigTrack(region,"/cluster/home/aanderson/myers/MAPT_project/ChIPseq/croo_output/CTCF_KOLF2.1J_Neuron/signal/pooled-rep/basename_prefix.pooled_x_basename_prefix.pooled.pval.signal.bigwig", smooth=300)&scale_fill_manual(values="darkseagreen2")&ylab("CTCF Neuron")&theme(legend.position="none",axis.title.y=element_text(angle=0))&ylim(0,100)
+CTCF_npc<-BigwigTrack(region,"/cluster/home/aanderson/myers/MAPT_project/ChIPseq/croo_output/CTCF_KOLF2.1J_NPC/signal/pooled-rep/basename_prefix.pooled_x_basename_prefix.pooled.pval.signal.bigwig", smooth=300)&scale_fill_manual(values="cornflowerblue")&ylab("CTCF NPC")&theme(legend.position="none",axis.title.y=element_text(angle=0))&ylim(0,15)
+
+h3k27ac_neuron<-BigwigTrack(region,"~/myers/MAPT_project/ChIPseq/croo_output/H3K27ac_KOLF2.1J_Neuron/signal/pooled-rep/basename_prefix.pooled_x_basename_prefix.pooled.pval.signal.bigwig", smooth=300)&scale_fill_manual(values="darkseagreen2")&ylab("H3K27ac Neuron")&theme(legend.position="none",axis.title.y=element_text(angle=0))&ylim(0,40)
+h3k27ac_npc<-BigwigTrack(region,"~/myers/MAPT_project/ChIPseq/croo_output/H3K27ac_KOLF2.1J_NPC/signal/pooled-rep/basename_prefix.pooled_x_basename_prefix.pooled.pval.signal.bigwig", smooth=300)&scale_fill_manual(values="cornflowerblue")&ylab("H3K27ac NPC")&theme(legend.position="none",axis.title.y=element_text(angle=0))&ylim(0,15)
+
+olig.bw<-BigwigTrack(region, "~/myers/scAnalysis/Nott_files/Olig_H3K27ac_hg38.bigWig", smooth=300)+scale_fill_manual(values="red3")+ylab("H3K27ac OLIG")+theme(legend.position="none",axis.title.y=element_text(angle=0))
+mic.bw<-BigwigTrack(region, "~/myers/scAnalysis/Nott_files/Microglia_H3K27ac_hg38.bigWig", smooth=300)+scale_fill_manual(values="mediumorchid3")+ylab("H3K27ac MIC")+theme(legend.position="none",axis.title.y=element_text(angle=0))
+
+gene_plot<-AnnotationPlot(xcl4, region=region)
+
+p<-CombineTracks(plotlist=list(CTCF_neuron, CTCF_npc, h3k27ac_neuron, h3k27ac_npc, atac_neuron, atac_npc,olig.bw, mic.bw, gene_plot), heights=c(1,1,1,1,1,1,1,1,2))
+pdf("~/myers/scAnalysis/plots/Neuron_region_CTCF_k27_atac.pdf", width=7, height=8)
+p
+dev.off()
+
+
+
+
+
+# GO TO sc
+
+
+capC_FC<-readBigwig("~/myers/MAPT_project/differential_capC/Neuron_NPC_bin_500_directional_p.signal.bw",  chrom="chr17", chromstart=44700000,chromend=47000000)
+sig_capC<-GRanges(capC_FC[which(abs(capC_FC$score)>2),])
+sig_capC<-resize(sig_capC, width=4000, fix="start")
+mcols(sig_capC)<-NULL
+
+#ad_data<-readRDS("~/myers/scAnalysis/RINdrop/final.rds")
+ad_data$predicted.id<-factor(ad_data$predicted.id, levels=c("Astrocytes", "Excitatory","Inhibitory","Microglia","Oligodendrocytes","OPCs", "Endothelial","Pericytes"))
+Idents(ad_data)<-ad_data$predicted.id
+DefaultAssay(ad_data)<-"ATAC"
+
+
+pdf("~/myers/scAnalysis/plots/Neuron_region_scAD_ATAC_wKOLF.pdf", width=7, height=7)
+CoveragePlot(object = ad_data,region = region,annotation = TRUE, peaks=F, idents=c("Astrocytes", "Excitatory","Inhibitory","Microglia","Oligodendrocytes","OPCs"), ymax=700,window=300,  region.highlight= subsetByOverlaps(sig_capC, region))&scale_fill_manual(values=c("darkgoldenrod1","cornflowerblue","seagreen3", "mediumorchid3","coral3","firebrick"))
+dev.off()
+
+
+
+# Add NGN2 ATAC
+c1<-CoveragePlot(object = ad_data,region = region,annotation=F, peaks=F, idents=c("Astrocytes", "Excitatory","Inhibitory","Microglia","Oligodendrocytes","OPCs"), ymax=700,window=300,  region.highlight= subsetByOverlaps(sig_capC, region))&scale_fill_manual(values=c("darkgoldenrod1","cornflowerblue","seagreen3", "mediumorchid3","coral3","firebrick"))
+atac_neuron<-BigwigTrack(region,"/cluster/home/mmackiewicz/Applications/ATAC/output/KOLF2.1J-NGN2_Neuron/signal/pooled-rep/basename_prefix.pooled.fc.signal.bigwig", smooth=200)&scale_fill_manual(values="dodgerblue3")&ylab("ATAC Neuron")&theme(legend.position="none",axis.title.y=element_text(angle=90))
+atac_npc<-BigwigTrack(region, "/cluster/home/mmackiewicz/Applications/ATAC/output/KOLF2.1J-WT_NPCs/signal/pooled-rep/basename_prefix.pooled.fc.signal.bigwig", smooth=200)&scale_fill_manual(values="deepskyblue")&ylab("ATAC NPC")&theme(legend.position="none",axis.title.y=element_text(angle=90))
+gene_plot<-AnnotationPlot(xcl4, region=region)
+
+p<-CombineTracks(plotlist=list(c1, atac_neuron, atac_npc, gene_plot), heights=c(6,1,1,2))
+pdf("~/myers/scAnalysis/plots/Neuron_region_scAD_ATAC_wKOLF.pdf", width=7, height=7)
+p
+dev.off()
+
+
+
+
+###################
+#   Differential CapC in same region
+
+
+capC_FC<-readBigwig("~/myers/MAPT_project/differential_capC/Neuron_NPC_bin_500_directional_p.signal.bw",  chrom="chr17", chromstart=44700000,chromend=47000000)
+capC_FC$score<-ifelse(capC_FC$score==Inf, 10, capC_FC$score)
+capC_FC$score<-ifelse(capC_FC$score== -Inf, -10, capC_FC$score)
+
+params_a <- pgParams(chrom = "chr17", chromstart = 45224000, chromend = 45320000, assembly = "hg38",x =0.5, width = 5.5, just = c("left", "top"), default.units ="inches")
+
+
+
+DefaultAssay(xcl4)<-"ATAC"
+annot<-Annotation(xcl4)
+annot<-annot[which(annot$gene_biotype=="protein_coding"),]
+annot<-annot[!grepl("AC1", annot$gene_name),]
+Annotation(xcl4)<-annot
+region<-GRanges("chr17:45224000-45320000")
+gene_plot<-AnnotationPlot(xcl4, region=region)&theme_void()
+
+pdf("~/myers/scAnalysis/plots/Differential_CapC_Neuron_NPC_zoomRegion.pdf", width=7, height=5)
+pageCreate(width = 7, height = 5, default.units = "inches", showGuides=F)
+
+p<-plotSignal(capC_FC, params=params_a,chrom="chr17", negData=T,height=0.8,y=0.6, fill=c("red","blue"), linecolor=c("red","blue"))
+annoYaxis(plot = p, at = c(-2,2), axisLine=T, params=pgParams(fontsize = 6))
+plotText(label = "Neuron v NPC CapC 500bp bin", fontcolor = "#37a7db", fontsize = 8,
+            y = 0.3, just = c("left","top"), default.units = "inches", params=params_a)
+
+tmp<-GRanges(capC_FC[which(abs(capC_FC$score) >2),])
+tmp<-reduce(tmp)
+plotRanges(capC_FC[which(abs(capC_FC$score) >2),], params=params_a, y=1.7, height=0.2, fill="black",spaceWidth=0.01, limitLabel=F, collapse=T, wboxHeight=unit(4,"mm"))
+plotGG(gene_plot, params=params_a, height=2, y=1.7)
+
+#plotGenes(params = params_a,y = 2, height = 0.5)
+
+plotGenomeLabel(params=params_a,
+    x = 0.5, y = 4, length = 5.5)
+
+dev.off()
+
+
+
+```
+
+
+
+---
+---
+
+
+# RNAseq
+```{bash}
+conda activate idemux
+module load cluster/htslib/1.9
+module load cluster/star/2.7.5c 
+module load cluster/samtools/1.16.1
+module load cluster/bbmap/38.42 
+```
+
+
+
+
+
+
+
+## Run Pipeline
+```{bash}
+#batch1
+cd MAPT_230213_7136-NC-0004/
+ls /cluster/home/aanderson/demuxed/RNA_230213/batch1/H* > samples.csv
+awk 'gsub("/cluster/home/aanderson/demuxed/RNA_230213/batch1","")1' samples.csv >tmp
+awk 'gsub(".fastq.gz","")1' tmp > samples.csv
+
+/cluster/home/aanderson/myers/scripts/conductQuantseq_analysis.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch1 -s samples.csv -t 18
+
+../MAPT_230213_7136-NC-0007//aggr_counts.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch1/ -s samples.csv -t 18
+
+sed -e 's:/::g' summary_all.tsv > summary.tsv
+```
+
+
+
+```{bash}
+#batch2
+cd ../MAPT_230213_7136-NC-0005/
+ls /cluster/home/aanderson/demuxed/RNA_230213/batch2/H* > samples.csv
+awk 'gsub("/cluster/home/aanderson/demuxed/RNA_230213/batch2","")1' samples.csv >tmp
+awk 'gsub(".fastq.gz","")1' tmp > samples.csv
+
+/cluster/home/aanderson/myers/scripts/conductQuantseq_analysis.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch2 -s samples_2.csv -t 24
+
+../MAPT_230213_7136-NC-0007/aggr_counts.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch2/ -s samples_2.csv -t 18
+
+#reran and pulled 77,79,80 from firsr run
+```
+
+
+```{bash}
+#batch3
+cd ../MAPT_230213_7136-NC-0006/
+ls /cluster/home/aanderson/demuxed/RNA_230213/batch3/H* > samples.csv
+awk 'gsub("/cluster/home/aanderson/demuxed/RNA_230213/batch3","")1' samples.csv >tmp
+awk 'gsub(".fastq.gz","")1' tmp > samples.csv
+
+/cluster/home/aanderson/myers/scripts/conductQuantseq_analysis.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch3 -s samples.csv -t 18
+
+../MAPT_230213_7136-NC-0007//aggr_counts.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch3/ -s samples.csv -t 18
+```
+
+```{bash}
+
+#batch 4
+cd MAPT_230213_7136-NC-0007/
+ls /cluster/home/aanderson/demuxed/RNA_230213/H* > samples.csv
+awk 'gsub("/cluster/home/aanderson/demuxed/RNA_230213/","")1' samples.csv >tmp
+awk 'gsub(".fastq.gz","")1' tmp > samples.csv
+
+/cluster/home/aanderson/myers/scripts/conductQuantseq_analysis.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch4 -s samples.csv -t 18
+
+
+./aggr_counts.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch4/ -s samples.csv -t 18
+
+```
+
+
+
+
+```{bash}
+# batch5
+cd MAPT_230217_7136-NC-0008/
+ls /cluster/home/aanderson/demuxed/RNA_230217/H* > samples.csv
+awk 'gsub("/cluster/home/aanderson/demuxed/RNA_230217/","")1' samples.csv >tmp
+awk 'gsub(".fastq.gz","")1' tmp > samples.csv
+
+/cluster/home/aanderson/myers/scripts/conductQuantseq_analysis.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230217/ -s samples.csv -t 18
+
+
+../MAPT_230213_7136-NC-0007/aggr_counts.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch4/ -s samples.csv -t 18
+
+
+```
+
+
+
+
+
+### format meta
+```{r}
+meta1<-read.csv("~/Documents/MAPT_project/RNAseq_meta/MAPT_CRISPR_FASTQ_ID_7136-NC-0001.csv")
+meta2<-read.csv("~/Documents/MAPT_project/RNAseq_meta/MAPT_CRISPR_FASTQ_ID_7136-NC-0002.csv")
+meta3<-read.csv("~/Documents/MAPT_project/RNAseq_meta/MAPT_CRISPR_FASTQ_ID_7136-NC-0003.csv")
+meta4<-read.csv("~/Documents/MAPT_project/RNAseq_meta/MAPT_CRISPR_FASTQ_ID_7136-NC-0007_Batch4.csv")
+meta5<-read.csv("~/Documents/MAPT_project/RNAseq_meta/MAPT_CRISPR_FASTQ_ID_7136-NC-0008_Batch5.csv")
+
+meta1$Library_name<-paste0("7136-NC-0004_",sapply(strsplit(meta1$Filename,"_"),`[`,6))
+#meta1$Library_name<-gsub("0001","0004",meta1$Library_name)
+meta2$Library_name<-gsub("0002","0005",meta2$Library_name)
+meta3$Library_name<-gsub("0003","0006",meta3$Library_name)
+
+
+meta1<-meta1[,c(5,6,8,10,22)]
+meta2<-meta2[,-c(1,7)]
+meta3<-meta3[,-c(1,7)]
+meta4<-meta4[,-1]
+
+colnames(meta1)<-gsub("\\.","_", colnames(meta1))
+colnames(meta2)<-gsub("\\.","_", colnames(meta2))
+colnames(meta3)<-gsub("\\.","_", colnames(meta3))
+colnames(meta4)<-gsub("\\.","_", colnames(meta4))
+colnames(meta5)<-gsub("\\.","_", colnames(meta5))
+
+colnames(meta4)[5]<-"Library_name"
+colnames(meta5)[5]<-"Library_name"
+ALL_meta<-rbind(meta1,meta2,meta3,meta4,meta5)
+ALL_meta$Target_Region<-ifelse(ALL_meta$Target_Region %in% c("safe harbor","Safe harbor","Safe Harbor"),"SH",ALL_meta$Target_Region)
+ALL_meta$DistTSS<-as.numeric(ALL_meta$Target_Region)-45894000
+
+
+ALL_meta<-read.csv("~/Documents/MAPT_project/RNAseq_meta/All_meta.csv")
+key<-read.csv("~/Documents/MAPT_project/RNAseq_meta/gRNA_ID_key.csv")
+
+ALL.m<-merge(ALL_meta, key, by.x="gRNA_ID","Well.Position", all.x=T)
+ALL.m$gRNA_ID<-ifelse(is.na(ALL.m$gRNA.ID)==T, ALL.m$gRNA_ID, ALL.m$gRNA.ID)
+ALL.m<-ALL.m[!duplicated(ALL.m$Library_name),]
+
+
+###########################   ###########################   ###########################
+
+meta1<-read.xlsx("~/Documents/MAPT_project/RNAseq_meta/LexogenRNAlibraryPrep1_BBR.xlsx")
+meta2<-read.xlsx("~/Documents/MAPT_project/RNAseq_meta/Lexogen_3mRNAseq_batch2_111220222_BBR.xlsx")
+meta3<-read.xlsx("~/Documents/MAPT_project/RNAseq_meta/Lexogen_3mRNALibraries_12132022_batch3_BBR.xlsx")
+meta4<-read.xlsx("~/Documents/MAPT_project/RNAseq_meta/Lexogen_3mRNAseq_batch4&5_01112023_BBR.xlsx", sheet=1)
+meta5<-read.xlsx("~/Documents/MAPT_project/RNAseq_meta/Lexogen_3mRNAseq_batch4&5_01112023_BBR.xlsx", sheet=2)
+
+dummy1<-read.csv("~/Documents/MAPT_project/RNAseq_meta/MAPT_CRISPR_FASTQ_ID_7136-NC-0001.csv")
+dummy2<-read.csv("~/Documents/MAPT_project/RNAseq_meta/MAPT_CRISPR_FASTQ_ID_7136-NC-0002.csv")
+dummy3<-read.csv("~/Documents/MAPT_project/RNAseq_meta/MAPT_CRISPR_FASTQ_ID_7136-NC-0003.csv")
+dummy4<-read.csv("~/Documents/MAPT_project/RNAseq_meta/MAPT_CRISPR_FASTQ_ID_7136-NC-0007_Batch4.csv")
+dummy5<-read.csv("~/Documents/MAPT_project/RNAseq_meta/MAPT_CRISPR_FASTQ_ID_7136-NC-0008_Batch5.csv")
+
+
+dummy1$Library_name<-paste0("7136-NC-0004_",sapply(strsplit(dummy1$Filename,"_"),`[`,6))
+dummy2$Library_name<-gsub("0002","0005",dummy2$Library_name)
+dummy3$Library_name<-gsub("0003","0006",dummy3$Library_name)
+
+meta1<-merge(meta1, dummy1[,c(2,22)], by.x="SampleName",by.y="Sample.Name")
+meta2$Library_name<-dummy2$Library_name
+meta3$Library_name<-dummy3$Library_name
+meta4<-meta4[-c(95,96),]
+meta4$Library_name<-dummy4$Library_Name
+meta5$Library_name<-dummy5$Library_Name
+
+
+meta1<-meta1[,c(2,3,4,6,11,13)]
+meta2<-meta2[,colnames(meta1)]
+meta3<-meta3[,colnames(meta1)]
+meta4<-meta4[,colnames(meta1)]
+meta5<-meta5[,colnames(meta1)]
+All_meta<-rbind(meta1, meta2, meta3, meta4, meta5)
+write.csv(All_meta, "~/Documents/MAPT_project/RNAseq_meta/All_meta.csv")
+```
+
+
+46225789
+
+## ANALYSIS
+```{r}
+counts1<-read.table("/cluster/home/aanderson/myers/quantseq/redo_MAPT_230213_7136-NC-0004/summary_all.tsv", sep="\t", header=T)
+counts2<-read.table("/cluster/home/aanderson/myers/quantseq/redo_MAPT_230213_7136-NC-0005/summary_all.tsv", sep="\t", header=T)
+counts3<-read.table("/cluster/home/aanderson/myers/quantseq/MAPT_230213_7136-NC-0006/summary_all.tsv", header=T)
+counts4<-read.table("/cluster/home/aanderson/myers/quantseq/MAPT_230213_7136-NC-0007/summary_all.tsv", header=T)
+counts5<-read.table("/cluster/home/aanderson/myers/quantseq/MAPT_230217_7136-NC-0008/summary_all.tsv", header=T)
+
+
+All_meta<-read.csv("~/myers/MAPT_project/RNAseq/All_meta.csv")
+All_meta$batch<-sapply(strsplit(All_meta$Library_name,"_", fixed=T),`[`,1)
+All_meta$batch<-gsub("7136-NC-","", All_meta$batch)
+All_meta$Library_name<-gsub("-",".", All_meta$Library_name)
+All_meta<-All_meta[!(All_meta$Expt %in% "Gluta"),]
+All_meta<-All_meta[which(All_meta$gRNA.ID!="GFP"),]
+All_meta$Target.Region<-ifelse(All_meta$Target.Region==45894500,45894000, All_meta$Target.Region)
+All_meta$DistTSS<-as.numeric(All_meta$Target.Region)-45894000
+All_meta$Target.Region<-ifelse(All_meta$Target.Region %in% c("Safe harbor","Safe Harbor","safe harbor"),"SH",All_meta$Target.Region)
+
+#format counts table so that rownames are gene names
+ALL_counts<-cbind(counts1, counts2[,-1],counts3[,-1], counts4[,-1], counts5[,-1])
+colnames(ALL_counts)<-gsub("X.","", colnames(ALL_counts))
+gtf<-rtracklayer::import("~/myers/scAnalysis/genes.gtf")
+gtf<-gtf[which(gtf$type=="gene"),]
+conversion<-as.data.frame(gtf)[c(10,13)]
+ALL_counts<-merge(ALL_counts,conversion,by.x="id",by.y="gene_id")
+ALL_counts$rs<-rowSums(ALL_counts[,-c(1,ncol(ALL_counts))]) #take row sum but exclude gene name columns
+ALL_counts<-ALL_counts[order(-ALL_counts$rs),]
+ALL_counts<-ALL_counts[!duplicated(ALL_counts$gene_name),]
+rownames(ALL_counts)<-ALL_counts$gene_name
+ALL_counts<-ALL_counts[-c(1, ncol(ALL_counts)-1,ncol(ALL_counts))]
+ALL_counts<-ALL_counts[,-479] #removes the undetermined run. Because accidentally ran it through pipeline
+cn<-colnames(ALL_counts)
+cn2<-sapply(strsplit(cn, "_", fixed=T), function(x){paste(x[[5]], x[[6]], sep="_")})
+colnames(ALL_counts)<-cn2
+
+counts<-ALL_counts[,All_meta$Library_name]
+
+CPM<-cpm(counts)
+
+
+
+
+df<-data.frame(MAPT=as.numeric(CPM["MAPT",]), DistTSS=All_meta$DistTSS, TR=All_meta$Target.Region)
+tmp<-aggregate(MAPT~TR, df, mean)
+df<-df[!(df$TR %in% c("GFP","SH")),]
+df$log2FC<-log2(df$MAPT/tmp[which(tmp$TR=="SH"),]$MAPT)
+df$DistTSS<-factor(df$DistTSS, levels=unique(sort(as.numeric(df$DistTSS))))
+pdf("~/myers/scAnalysis/plots/MAPT_RNAseq_MAPT.pdf", width=16, height=6)
+ggplot(df[which(df$TR!="SH"),], aes(x=DistTSS,y=log2FC))+geom_boxplot(fill="darkslategray2")+theme_classic()+theme(axis.text.x=element_text(angle=90))+geom_hline(yintercept=0)+xlab("Distance to MAPT promoter (bp)")
+dev.off()
+
+pdf("~/myers/scAnalysis/plots/MAPT_RNAseq_AAVS_dist.pdf")
+df<-data.frame(MAPT=as.numeric(CPM["MAPT",]), DistTSS=All_meta$DistTSS, TR=All_meta$Target_Region, LN=All_meta$Library_name)
+df<-df[which(df$TR=="SH"),]
+ggplot(df, aes(x=1, y=MAPT))+geom_boxplot()+geom_jitter()+theme_classic()+geom_text_repel(aes(label=LN))
+dev.off()
+```
+
+
+## Differentiation score
+```{r}
+keep<-counts
+keep_meta<-All_meta[which(All_meta$Library_name %in% colnames(keep)),]
+rownames(keep_meta)<-keep_meta$Library_name
+keep_meta<-keep_meta[!grepl("BC1",keep_meta$Expt),]
+keep<-keep[,keep_meta$Library_name]
+rownames(All_meta)<-All_meta$Library_name
+
+
+
+mapt<-CreateSeuratObject(counts=keep, min.cells=1)
+mapt<-AddMetaData(mapt, keep_meta)
+mapt<-NormalizeData(mapt, normalization.method="RC", scale.factor=1e6)
+mapt$MAPT_counts<-mapt@assays$RNA@counts["MAPT",]
+mapt$MAPT_CPM<-mapt@assays$RNA@data["MAPT",]
+
+md<-mapt@meta.data
+md$Control<-grepl("SH", md$Target.Region)
+md.m<-melt(md)
+pdf("~/myers/scAnalysis/plots/MAPT_QC.pdf")
+ggplot(md, aes(x=log10(MAPT_CPM), y=nCount_RNA, color=batch, shape=Control))+geom_point()+geom_text_repel(aes(label=Library_name))+theme_classic()
+ggplot(md, aes(x=MAPT_CPM, y=nCount_RNA, color=batch, shape=Control))+geom_point()+geom_text_repel(aes(label=Library_name))+theme_classic()
+ggplot(md.m[!(md.m$variable %in% c("Sample","DistTSS","X")),], aes(y=value, x=variable))+geom_boxplot()+facet_wrap(~variable, scales="free")
+dev.off()
+
+
+
+
+mapt<-ScaleData(mapt)
+mapt<-RunPCA(mapt, features=rownames(mapt))
+pdf("~/myers/scAnalysis/plots/MAPT_PCA.pdf")
+DimPlot(mapt, group.by="batch", dims=1:2)+DimPlot(mapt, group.by="batch", dims=3:4)
+DimHeatmap(mapt, dims=1, balanced=T)
+dev.off()
+
+
+mapt$DistTSS<-ifelse(is.na(mapt$DistTSS),"SH",mapt$DistTSS)
+Idents(mapt)<-mapt$DistTSS
+test<-FindMarkers(mapt, ident.1="0",ident.2="SH",test.use="DESeq2")
+
+mapt<-AddModuleScore(mapt, features=list(c("RBFOX3","LIN28A")), name="Immature_score", search=T)
+mapt<-AddModuleScore(mapt, features=list(c("CACNA1C","ENO2","MAP2")), name="Mature_score")
+mapt<-AddModuleScore(mapt, features=list(c("AQP4","SLC1A3")), name="Ast_score")
+mapt$Ast<-mapt@assays$RNA@data["AQP4",]
+
+pdf("~/myers/scAnalysis/plots/MAPT_PCA_Differentiation_scoree.pdf")
+FeaturePlot(mapt, features=c("Immature_score1", "Mature_score1"))
+ggplot(mapt@meta.data, aes(x=Mature_score1, y=MAPT_CPM))+geom_point()+theme_classic()
+dev.off()
+
+```
+
+
+Drop batch 0004 (high MAPT expression) and batch 0006(low overall counts)
+
+## Mixed Effect
+```{r}
+
+keep_meta2<-keep_meta[which(keep_meta$batch %in% c("0004", "0005","0007","0008")),]
+
+keep2<-keep[,keep_meta2$Library_name]
+cpm2<-cpm(keep2)
+
+keep_meta2$MAPT<-as.numeric(cpm2["MAPT",])
+md<-mapt@meta.data
+keep_meta2<-merge(keep_meta2, md[,c(2,10,17, 16,18)], by="Library_name",all.x=T)
+
+
+ 
+regions<-table(keep_meta2$Target.Region)
+ regions<-names(regions[regions>2])
+ rs<-rowMeans(keep2)
+ meep2<-keep2[which(rs>quantile(rs, probs=0.65)),]
+ cpm2<-cpm2[, keep_meta2$Library_name]
+ aroundMAPT<-subsetByOverlaps(gtf, GRanges("chr17:45894000"), maxgap=1000000)
+genes<-c(unique(aroundMAPT$gene_name)[unique(aroundMAPT$gene_name) %in% rownames(meep2)])
+
+ mixed_df<-c()
+for (i in 1: (length(regions)-1)){
+  for(j in 1:length(genes)){
+    keep_meta2$gene<-cpm2[genes[j],]
+   mixed_in<-lm(gene~Target.Region+Mature_score1+Ast_score1, data=keep_meta2[which(keep_meta2$Target.Region %in% c(regions[i],"SH")),])
+    est<-coef(summary(mixed_in))[,"Estimate"][2]
+    t<-coef(summary(mixed_in))[,"t value"][2]
+  p<-coef(summary(mixed_in))[,"Pr(>|t|)"][2]
+  mixed_df<-rbind(mixed_df, c(regions[i], est, t, p, genes[j]))
+  }
+}
+ 
+ mixed_df<-as.data.frame(mixed_df)
+ colnames(mixed_df)<-c("Target.Region","Beta","t","p","gene")
+ mixed_df$DistTSS<-as.numeric(mixed_df$Target.Region)-45894000
+ 
+ mixed_df$padj<-p.adjust(mixed_df$p, method="BH")
+ 
+ write.csv(mixed_df, "~/myers/MAPT_project/RNAseq/DEGs_1Mb_region_MAPT_wMature-Ast.csv")
+ 
+ 
+
+```
+
+
+
+
+
+
+
+
+## HEATMAP
+ Fold Change
+```{r}
+
+
+dists<-unique(mixed_df$DistTSS)
+genes<-unique(mixed_df$gene)
+mat<-matrix(nrow=length(dists), ncol=length(genes))
+for(i in 1:length(dists)){
+  for(j in 1:length(genes)){
+    mat[i,j]<- -log10(as.numeric(mixed_df[which(mixed_df$DistTSS==dists[i] & mixed_df$gene==genes[j]),]$p))*sign(as.numeric(mixed_df[which(mixed_df$DistTSS==dists[i] & mixed_df$gene==genes[j]),]$Beta))
+  }
+}
+colnames(mat)<-genes
+rownames(mat)<-dists
+mat<-mat[,!grepl("AC", colnames(mat))]
+
+
+split<-c(rep("A",10),"B",rep("C", 5))
+ra1<-rowAnnotation( DistTSS=as.numeric(as.character(dists)), col=list( DistTSS=colorRamp2(c(-1000000,0,1000000), c("darkorange","white","darkmagenta")))) 
+
+pdf("~/myers/scAnalysis/plots/1Mb_region_aroundMAPT_dirP_HEATMAP.pdf", width=5, height=9)
+Heatmap(mat* -1, column_split=split , rect_gp = gpar(col = "grey80", lwd = 2), cluster_rows=F, cluster_columns=F,col=colorRamp2(c(-3, -1.3,-1.28,0,1.28,1.3, 3),  c("darkblue", "blue","white","white","white","red", "darkred")), right_annotation=ra1, name="Directional p-value", column_names_gp = gpar(fontsize = 6), row_names_side = "left", column_title=NULL)
+dev.off()
+
+```
+
+
+
+## sig regions
+```{r}
+sig<-as.data.frame(unique(mixed_df[which(mixed_df$DistTSS %in% c(-674458, -652338, -584456, -464677, -461949, -44905, -20178, 0, 300, 47019, 48416, 77758)),]$Target.Region))
+sig$seqnames<-"chr17"
+
+colnames(sig)[1]<-"start"
+sig$end<-as.numeric(sig$start)+1
+sig<-GRanges(sig)
+over<-findOverlaps(all, sig)
+all_r<-all[queryHits(over)]
+all_r$DistTSS<- as.numeric(start(sig[subjectHits(over)]))-45894000
+
+tab<-as.data.frame(all_r) %>% group_by(DistTSS) %>% summarize(genes=paste0(gene, collapse=","))
+
+
+
+sig_regions<-grna[which(grna$DistTSS %in% c(-906313, -905582,-80575, -992906,-872915,-800831,-464861,-122850,137578,870999,  -674458, -652338, -584456, -464677, -461949, -44905, -20178, 0, 300, 47019, 48416, 77758)),]
+sig_regions<-resize(sig_regions, width=10000, fix="center")
+breaks<-seq(44894000, 46894000, by=100000)
+labels<-breaks-45894000
+labels<-comma(labels)
+
+region<-GRanges("chr17:44900000-46900000")
+regions<-Bed_PeakPlot(unique(sig_regions), region=region)&scale_x_continuous(breaks=breaks,labels=labels)& theme(axis.text.x=element_text(angle=45, vjust=0.97,hjust= 0.9))&xlab("Distance from MAPT promoter (hg38, chr17)")
+gene_plot<-AnnotationPlot(xcl4, region=region)
+
+p<-CombineTracks(plotlist=list(gene_plot, regions), heights=c(4,1))
+pdf("~/myers/scAnalysis/plots/Sig_regions_geneTrack.pdf", width=10, height=6)
+p
+dev.off()
+
+
+```
+
+
+
+What are all of the nomination methods for the significant regions
+
+```{r}
+#format all Noms
+mapt<-GRanges(read.csv("~/myers/scAnalysis/MAPT_links/MAPT_1Mb_links.csv"))
+xcl4_links<-readRDS("~/myers/scAnalysis/NPC_multi/210330_links_aggr.rds")
+xcl4_mapt<-xcl4_links[which(xcl4_links$gene=="MAPT"),]
+HiC.pairs2<-HiC.pairs[c("5193","5300"),]
+
+#format gluta and gaba pairs from loop annotation section
+start<-c(Gluta.pairs[which(Gluta.pairs$start1==45890001),]$start2, Gluta.pairs[which(Gluta.pairs$start2==45890001),]$start1,
+         GABA.pairs[which(GABA.pairs$start1==45890001),]$start2, GABA.pairs[which(GABA.pairs$start2==45890001),]$start1,
+         HiC.pairs2$start1)
+end<-c(Gluta.pairs[which(Gluta.pairs$end1==45895000),]$end2, Gluta.pairs[which(Gluta.pairs$end2==45895000),]$end1,
+         GABA.pairs[which(GABA.pairs$end1==45895000),]$end2, GABA.pairs[which(GABA.pairs$end2==45895000),]$end1,
+         HiC.pairs2$end1)
+df<-data.frame(start=start, end=end)
+df$seqnames<-"chr17"
+gr<-GRanges(df)
+gr$Nom<-c(rep("Gluta CapC",length(c(Gluta.pairs[which(Gluta.pairs$start1==45890001),]$start2, Gluta.pairs[which(Gluta.pairs$start2==45890001),]$start1))),
+rep("GABA CapC", length(c(GABA.pairs[which(GABA.pairs$start1==45890001),]$start2, GABA.pairs[which(GABA.pairs$start2==45890001),]$start1))),
+rep("HiC",2))
+mapt$Nom<-"AD links"
+xcl4_mapt$Nom<-"Cultured links"
+Noms<-c(gr,mapt,xcl4_mapt)
+
+#just take significant regions
+sig<-unique(grna[which(grna$DistTSS %in% c(-674458, -652338, -584456, -464677, -461949, -44905, -20178, 0, 300, 47019, 48416, 77758)),])
+
+over<-findOverlaps(sig, Noms)
+sig1<-sig[queryHits(over)]
+sig1$Nom<-Noms[subjectHits(over)]$Nom
+sig2<-sig[-queryHits(over)]
+sig2$Nom<-"other"  #keep those that didn't overlap
+all_sig<-c(sig1,sig2)
+
+mat<-as.data.frame(as.matrix(table(all_sig$Nom, all_sig$DistTSS)))
+mat$Var1<-factor(mat$Var1, levels=rev(mat$Var1[1:6]))
+pdf("~/myers/scAnalysis/plots/Sig_regions_nomination_method.pdf", width=6, height=3)
+ggplot(mat, aes(y=Var1, x=Var2, alpha=as.factor(Freq)))+geom_point(size=3)+theme_bw()+xlab("")+ylab("Nomination Method")+scale_alpha_discrete(range=c(0,1))+theme(legend.position="none", axis.text.x=element_text(angle=45, vjust=0.9, hjust=0.9))
+dev.off()
+
+
+other<-unique(subsetByOverlaps(grna, Noms, invert=T))
+other$Nom<-"other"
+Noms2<-c(Noms, other)
+rep<-cbind(as.data.frame(table(Noms2$Nom)), as.data.frame(table(all_sig$Nom)))
+rep<-rep[,-3]
+colnames(rep)[2:3]<-c("All","sig")
+rep$NS<-rep$All-rep$sig
+rep<-melt(rep[,-2])
+rep$Var1<-factor(rep$Var1, levels=rev(rep$Var1[1:6]))
+
+pdf("~/myers/scAnalysis/plots/Number_sig_regions_by_Nomination.pdf", width=4, height=5)
+ggplot(rep, aes(y=Var1,x=value, fill=variable))+geom_bar(color="black",stat="identity", position="dodge")+scale_fill_manual(values=c("darkslategray2", "grey60"), name="")+theme_classic()+ylab("Nomination Method")+xlab("count")
+dev.off()
+
+
+
+#go back to before melt
+rep$propSig<-rep$sig/rep$All
+rep$propNS<-rep$NS/rep$All
+rep<-melt(rep[,c(1,5,6)] )
+rep$Var1<-factor(rep$Var1, levels=rev(rep$Var1[1:6]))
+
+pdf("~/myers/scAnalysis/plots/Proportion_sig_regions_by_Nomination.pdf", width=4, height=5)
+ggplot(rep, aes(y=Var1,x=value, fill=variable))+geom_bar(color="black",stat="identity", position="stack")+scale_fill_manual(values=c("darkslategray2", "grey60"), name="")+theme_classic()+ylab("Nomination Method")+xlab("count")
+dev.off()
+
+
+```
+
+
+
+
+### which links?
+```{r}
+o<-findOverlaps(mapt, all_sig)
+mapt$sig<-F
+mapt[queryHits(o)]$sig<-T
+
+
+
+mapt.df<-as.data.frame(mapt)
+pdf("~/myers/scAnalysis/plots/AD_link_sig_vs_notsig_regions.pdf", width=6, height=4)
+p1<-ggplot(mapt.df, aes(x=sig, y=abs(score.x), fill=sig))+geom_boxplot()+ stat_compare_means(method = "t.test")+theme_classic()+theme(legend.position="none")+ylab("abs(score)")+xlab("KD MAPT")
+p2<-ggplot(mapt.df, aes(x=sig, y=qval.x, fill=sig))+geom_boxplot()+ stat_compare_means(method = "t.test")+theme_classic()+ylab("-log10(q-value)")+xlab("KD MAPT")+theme(legend.position="none")
+p1+p2
+dev.off()
+```
+
+Links that were significant had higher abs score(0.04) and higher QVAL(NS)
+
+
+
+
+### what annot?
+```{r}
+over<-findOverlaps(Noms2, sig_regions)
+Noms2$sig<-F
+Noms2[queryHits(over)]$sig<-T
+over<-findOverlaps(Noms2, enc)
+Noms2$encodeLabel<-"None"
+Noms2[queryHits(over)]$encodeLabel<-enc$encodeLabel
+Noms2[queryHits(over)]$encodeLabel<-enc[subjectHits(over)]$encodeLabel
+table(Noms2$sig, Noms2$encodeLabel)
+
+
+Noms_reduce<-reduce(Noms2)
+over<-findOverlaps(Noms_reduce, sig_regions)
+Noms_reduce$sig<-F
+Noms_reduce[queryHits(over)]$sig<-T
+over<-findOverlaps(Noms_reduce, enc)
+Noms_reduce$encodeLabel<-"None"
+Noms_reduce[queryHits(over)]$encodeLabel<-enc$encodeLabel
+Noms_reduce[queryHits(over)]$encodeLabel<-enc[subjectHits(over)]$encodeLabel
+prop.table(table(Noms_reduce$sig, Noms_reduce$encodeLabel),2)
+
+```
+
+No un-annotated ENCODE regions had significant luciferase, qPCR, or CRISPRi
+Only ENCODE annotated dELS,pELS, and PLS regions had a significance in at least one method
+-The positivity rate was about the same for all (dELS=22.8%, pELS=23.5%, PLS=22.2%)
+
+
+## qPCR
+```{r}
+
+# qPCR
+qpcr<-read.csv("~/myers/MAPT_project/AllKRAB_AvgProbe_11262022.csv", na.strings="")
+cn<-qpcr[1,]
+qpcr<-qpcr[-1,]
+colnames(qpcr)[1:2]<-c("Expt","control")
+qpcr<-melt(qpcr, id.vars="Expt")
+qpcr<-qpcr[complete.cases(qpcr),]
+qpcr$variable<-gsub("X","", qpcr$variable)
+qpcr$variable<-gsub("[[:punct:]]","-", qpcr$variable)
+qpcr$Expt<-gsub(" ", "", qpcr$Expt)
+colnames(qpcr)[2]<-"DistTSS"
+
+#RNA
+All_meta<-read.csv("~/myers/MAPT_project/RNAseq/All_meta.csv")
+All_meta$batch<-sapply(strsplit(All_meta$Library_name,"_", fixed=T),`[`,1)
+All_meta$batch<-gsub("7136-NC-","", All_meta$batch)
+All_meta$Library_name<-gsub("-",".", All_meta$Library_name)
+All_meta<-All_meta[!(All_meta$Expt %in% "Gluta"),]
+All_meta<-All_meta[which(All_meta$gRNA.ID!="GFP"),]
+All_meta$Target.Region<-ifelse(All_meta$Target.Region==45894500,45894000, All_meta$Target.Region)
+All_meta$DistTSS<-as.numeric(All_meta$Target.Region)-45894000
+All_meta$DistTSS<-ifelse(is.na(All_meta$DistTSS)==T,"control",All_meta$DistTSS)
+tmp<-unique(All_meta$DistTSS)
+All_meta$DistTSS<-factor(All_meta$DistTSS, levels=c("control",sort(as.numeric(tmp[-2]))))
+#format the same as qpcr Expt names
+All_meta$Expt<-gsub(" ", "-", All_meta$Expt)
+All_meta$Expt<-gsub("_", "-", All_meta$Expt)
+All_meta$Expt<-ifelse(All_meta$Expt=="MAPT11-13redos","11-13redos-XCL4",
+                      ifelse(All_meta$Expt=="11-13redo-XCL4", "11-13redos-XCL4",
+                        ifelse(All_meta$Expt=="MAPT13.2","13.2-XCL4",
+                             ifelse(All_meta$Expt=="MAPT14","14-XCL4",
+                                    ifelse(All_meta$Expt=="MAPT8.2","8.2-XCL4", All_meta$Expt)))))
+
+ALL_cpm<-cpm(ALL_counts[,All_meta$Library_name]) #get cpm for all samples in same order as meta library IDs
+All_meta$MAPT<-ALL_cpm["MAPT",]
+blah<-All_meta[which(All_meta$batch %in% c("0005", "0007","0008")),]
+
+both<-merge(qpcr, blah[,c(2,9,10)], by=c("Expt","DistTSS"))
+both$value<-as.numeric(both$value)
+agg=aggregate(MAPT~DistTSS, both, mean)
+both$FC<-both$MAPT/agg[which(agg$DistTSS=="control"),]$MAPT
+sum(sign(log2(both$value))==sign(log2(both$FC)))/nrow(both)
+
+pdf("~/myers/scAnalysis/plots/qPCR_v_RNAseq_MAPT.pdf")
+ggplot(both, aes(x=value, y=FC, color=Expt))+geom_point()+geom_text_repel(aes(label=DistTSS))+theme_classic()+xlab("qPCR")+ylab("MAPT CPM")+geom_hline(yintercept=1, linetype="dashed")+geom_vline(xintercept=1, linetype="dashed")+ylim(0,5)+xlim(0,3)
+ggplot(both, aes(x=log10(value), y=log10(MAPT), color=Expt))+geom_point()+geom_text_repel(aes(label=DistTSS))+theme_classic()+xlab("log10(qPCR)")+ylab("log10(MAPT CPM)")
+ggplot(both, aes(x=Expt, y=value))+geom_boxplot()+theme_classic()
+dev.off()
+```
+
+
+---
+---
+
+
+
+# PLOT: browser
+
+```{r}
+
+a<-c(-906313, -905582,-80575, -992906,-872915,-800831,-464861,-122850,137578,870999,  -674458, -652338, -584456, -464677, -461949, -44905, -20178, 0, 300, 47019, 48416, 77758)
+
+
+dist<-a[i]
+region2<-unique(grna[which(grna$DistTSS== dist),])
+region<-resize(region2, width=6000, fix="center")
+
+grna_pos<-data.frame(start=grna$gRNA_position_hg38, end=grna$gRNA_position_hg38+1)
+grna_pos$seqnames<-"chr17"
+grna_pos<-GRanges(grna_pos)
+
+luc_pos<-as.data.frame(unique(gsub("chr17_","",grna$Corresponding.Luciferase)))
+luc_pos$seqnames<-"chr17"
+colnames(luc_pos)[1]<-c("start")
+luc_pos$start<-gsub("_F","", luc_pos$start)
+luc_pos$end<-as.numeric(luc_pos$start)+468
+luc_pos<-GRanges(luc_pos[-c(2,5),])
+
+p1<-BigwigTrack(region,"~/myers/MAPT_project/ChIPseq/croo_output/H3K27ac_KOLF2.1J_Neuron/signal/pooled-rep/basename_prefix.pooled_x_basename_prefix.pooled.fc.signal.bigwig",smooth=50)&scale_fill_manual(values="forestgreen")&ylab("H3K27ac")&theme(legend.position="none",axis.title.y=element_text(angle=0))&ggtitle(paste(dist, "(from MAPT TSS)"))
+
+p2<-BigwigTrack(region,"/cluster/home/lrizzardi/data_for_others/221025_KOLF2.1J_ATAC_Bri/cromwell_output/signal/pooled-rep/KOLF2.1J_BrainPhys_25k_Day14_rep.pooled.fc.signal.bigwig", smooth=50)&scale_fill_manual(values="cornflowerblue")&ylab("ATAC")&theme(legend.position="none",axis.title.y=element_text(angle=0))
+
+g1<-Bed_GWASPlot(grna_pos, region)+ylab("gRNA pos")+theme(axis.title.y=element_text(angle=0))&scale_color_manual(values="darkgoldenrod1")
+g2<-Bed_PeakPlot(luc_pos, region)+ylab("Luciferase")+theme(axis.title.y=element_text(angle=0))&scale_fill_manual(values="darkorchid")
+
+g3<-Bed_PeakPlot(region2, region)+ylab("Design Region")+theme(axis.title.y=element_text(angle=0))&scale_color_manual(values="red")
+
+n1<-Bed_PeakPlot(Noms2[which(Noms2$Nom=="AD links"),], region)+ylab("AD Links")+theme(axis.title.y=element_text(angle=0))
+n2<-Bed_PeakPlot(Noms2[which(Noms2$Nom=="Cultured links"),], region)+ylab("Cultured Links")+theme(axis.title.y=element_text(angle=0))
+n3<-Bed_PeakPlot(Noms2[which(Noms2$Nom=="GABA CapC"),], region)+ylab("GABA CapC")+theme(axis.title.y=element_text(angle=0))
+n4<-Bed_PeakPlot(Noms2[which(Noms2$Nom=="Gluta CapC"),], region)+ylab("Gluta CapC")+theme(axis.title.y=element_text(angle=0))
+n5<-Bed_PeakPlot(Noms2[which(Noms2$Nom=="HiC"),], region)+ylab("HiC")+theme(axis.title.y=element_text(angle=0))
+n6<-Bed_PeakPlot(Noms2[which(Noms2$Nom=="other"),], region)+ylab("other")+theme(axis.title.y=element_text(angle=0))
+gene_plot<-AnnotationPlot(xcl4, region=region)
+
+
+p<-CombineTracks(plotlist=list(p1,p2,g3, g2, g1,n1,n2,n3,n4,n5,n6, gene_plot), heights=c(8,8,1,1, 1,1,1,1,1,1,1,3))
+pdf(paste0("~/myers/scAnalysis/plots/Region_", dist,".pdf"), width=5, height=8)
+p
+dev.off()
+
+i=i+1
+
+```
+
+
+
+
+
+
+
+
+
+---
+---
+
+#NEED: ChIPseq processing, ATAC processing, HiC processing, 
+
+
+
+---
+---
+
+# Overlap publicly available datasets
+## MPRA
+```{r}
+
+grna_uniq<-unique(grna)
+grna_uniq<-grna
+
+ NPC<-read.csv("~/myers/scAnalysis/lit_search_validation/Weiss_NPC_MPRA.csv")
+NPC<-NPC[,4:13]
+colnames(NPC)[c(6,7)]<-c("start","end")
+NPC<-NPC[is.na(NPC$start)==F,]
+NPC<-GRanges(NPC)
+olap<-findOverlaps(unique(grna_uniq), NPC)
+grna_uniq.2<-grna_uniq[queryHits(olap)]
+grna_uniq.2$mpra_q<-NPC[subjectHits(olap)]$Active...NPC
+grna_uniq_sig<-grna_uniq.2[which(grna_uniq.2$mpra_q=="Yes"),]
+grna_uniq$Weiss_NPC<-ifelse(grna_uniq$Design_Region_Start_hg38 %in% grna_uniq_sig$Design_Region_Start_hg38,T,F)
+
+
+ESC<-read.csv("~/myers/scAnalysis/lit_search_validation/Weiss_ESC_MPRA.csv")
+ESC<-ESC[,4:13]
+colnames(ESC)[c(6,7)]<-c("start","end")
+ESC<-ESC[is.na(ESC$start)==F,]
+ESC<-GRanges(ESC)
+olap<-findOverlaps(unique(grna_uniq), ESC)
+grna_uniq.2<-grna_uniq[queryHits(olap)]
+grna_uniq.2$mpra_q<-ESC[subjectHits(olap)]$Active...ESC
+grna_uniq_sig<-grna_uniq.2[which(grna_uniq.2$mpra_q=="Yes"),]
+grna_uniq$Weiss_ESC<-ifelse(grna_uniq$Design_Region_Start_hg38 %in% grna_uniq_sig$Design_Region_Start_hg38,T,F)
+
+
+uebbing<-read.csv("~/myers/scAnalysis/lit_search_validation/Uebbing_NPC_MPRA.csv")
+uebbing<-uebbing[,1:20]
+uebbing<-GRanges(uebbing)
+ch<-import.chain("~/myers/liftover/hg19ToHg38.over.chain")
+uebbing38<-liftOver(uebbing, ch)
+uebbing<-unlist(uebbing38)  #lost 7
+olap<-findOverlaps(unique(grna_uniq), uebbing)
+grna_uniq.2<-grna_uniq[queryHits(olap)]
+grna_uniq.2$mpra_q<-uebbing[subjectHits(olap)]$Active
+grna_uniq_sig<-grna_uniq.2[which(grna_uniq.2$mpra_q=="YES"),]
+grna_uniq$Uebbing_MPRA<-ifelse(grna_uniq$Design_Region_Start_hg38 %in% grna_uniq_sig$Design_Region_Start_hg38,T,F)
+
+
+sure<-read.table("/cluster/projects/ADFTD/SuRE/SuRE_SNP_table_181029.txt", sep="\t")
+colnames(sure)<-sure[1,]
+sure<-sure[-1,]
+colnames(sure)[3]<-"start"
+sure$end<-as.numeric(sure$start)+1
+sure<-GRanges(sure)
+ch<-import.chain("~/myers/liftover/hg19ToHg38.over.chain")
+sure38<-liftOver(sure, ch)
+sure<-unlist(sure38)  #lost 7
+sure$sig<-sure$k562.wilcox.p.value <0.01 
+sure.sig<-sure[which(sure$sig==T),]
+olap<-findOverlaps(unique(grna_uniq), sure.sig)
+grna_uniq.2<-grna_uniq[queryHits(olap)]
+grna_uniq$SuRE_K562<-ifelse(grna_uniq$Design_Region_Start_hg38 %in% grna_uniq.2$Design_Region_Start_hg38,T,F)
+
+sure$sig<-sure$hepg2.wilcox.p.value <0.01
+sure.sig<-sure[which(sure$sig==T),]
+olap<-findOverlaps(unique(grna_uniq), sure.sig)
+grna_uniq.2<-grna_uniq[queryHits(olap)]
+grna_uniq$SuRE_HePG2<-ifelse(grna_uniq$Design_Region_Start_hg38 %in% grna_uniq.2$Design_Region_Start_hg38,T,F)
+
+
+mpra<-read.csv("~/myers/scAnalysis/lit_search_validation/Full_Cooper_MPRA_sumStats.csv")
+mpra$start<-mpra$pos
+mpra$end<-mpra$start+1
+mpra<-GRanges(mpra)
+ch<-import.chain("~/myers/liftover/hg19ToHg38.over.chain")
+mpra<-liftOver(mpra, ch)
+mpra<-unlist(mpra)  
+olap<-findOverlaps(unique(grna_uniq), mpra)
+grna_uniq.2<-grna_uniq[queryHits(olap)]
+grna_uniq.2$mpra_q<-mpra[subjectHits(olap)]$q
+grna_uniq.2$mpra_sig<-ifelse(grna_uniq.2$mpra_q<0.01,1,0) #their cutoff
+grna_uniq_sig<-grna_uniq.2[which(grna_uniq.2$mpra_sig==T)]
+grna_uniq$CooperMPRA<-ifelse(grna_uniq$Design_Region_Start_hg38 %in% grna_uniq_sig$Design_Region_Start_hg38,T,F)
+
+
+
+t1<-grna_uniq[which(grna_uniq$CooperMPRA==T),1]
+t2<-grna_uniq[which(grna_uniq$SuRE_K562==T),1]
+
+```
+
+
+chr17 46777486-46778634
+chr17 45309310-45309777
+chr17 45310000-45320000
+chr17 46264719-46265186
+chr17 45308608-45309912
+chr17 45965382-45966181
+chr17 46264203-46265543
+
+
+## CRISPR
+```{r}
+
+crispr<-read.csv("~/myers/scAnalysis/lit_search_validation/Cooper_CRISPR_validated.csv")
+
+
+library(SNPlocs.Hsapiens.dbSNP151.GRCh38)
+snps<-SNPlocs.Hsapiens.dbSNP151.GRCh38
+loc<-snpsById(snps,crispr$snp, ifnotfound="drop")
+loc<-merge(as.data.frame(loc),crispr, by.x="RefSNP_id", by.y="snp")
+loc$seqnames<-paste0("chr",loc$seqnames)
+loc$start<-loc$pos
+loc$end<-loc$start+1
+loc<-GRanges(loc)
+loc$ID<-paste0(loc$cell_type, loc$snp_target)
+loc<-loc[!duplicated(loc$ID)]
+loc<-loc[order(loc$sig)]
+
+olap<-findOverlaps(loc, grna_uniq)
+grna_uniq$CooperCRISPR<-F
+grna_uniq[subjectHits(olap)]$CooperCRISPR<-T
+grna_uniq$CooperCRISPR_sig<-F
+grna_uniq[subjectHits(olap)]$CooperCRISPR_sig<-loc[queryHits(olap)]$sig
+grna_uniq$CooperCRISPR_ID<-F
+grna_uniq[subjectHits(olap)]$CooperCRISPR_ID<-loc[queryHits(olap)]$ID
+
+
+
+```
+
+chr17 46224763-46225789 
+-KD KANSL1 in Neurons. Is not significant for MAPT
+chr17 45893500-45894500, chr17 45894066-45894533 [overlapping]
+-KD MAPT in Neurons and Microglia
+chr17 46266377-46269192 
+-overlaps region tested but was ns for everything
+
+
+## HiChIP
+```{r}
+
+files=as.list(readLines("/cluster/home/aanderson/myers/scAnalysis/Corces_HiChIP/files.txt"))
+n=sapply(strsplit(unlist(files),"[/]"),"[[",8)
+n2=sapply(strsplit(n,"[_]"),"[[",1)
+HiChIP_list=lapply(files,function(x){
+  TF=read.table(x, header=T)
+    })
+names(HiChIP_list)=n2
+
+for(i in 1:length(HiChIP_list)){
+  HiChIP_list[[i]]<-HiChIP_list[[i]][which(HiChIP_list[[i]]$chr1=="chr17"),]
+}
+
+HiChIP<-do.call(rbind, HiChIP_list)
+HiChIP$MAPT<-ifelse(HiChIP$s1< 45894000 & HiChIP$e1> 45894000 ,"first",
+                    ifelse(HiChIP$s2< 45894000 & HiChIP$e2 > 45894000, "second", "no"))
+
+tmp1<-HiChIP[which(HiChIP$MAPT=="first"), -c(1,2,3)]
+tmp2<-HiChIP[which(HiChIP$MAPT=="second"),-c(4,5,6)]
+colnames(tmp1)[1:3]<-c("seqnames","start","end")
+colnames(tmp2)[1:3]<-c("seqnames","start","end")
+
+MAPT_HiChIP<-unique(GRanges(rbind(tmp1,tmp2)))
+#MAPT_HiChIP<-unique(MAPT_HiChIP[which(MAPT_HiChIP$Q.Value_Bias<0.01),])
+over<-findOverlaps(grna_uniq, MAPT_HiChIP)
+grna_uniq$HiChIP_q<-1
+grna_uniq[queryHits(over)]$HiChIP_q<-MAPT_HiChIP[subjectHits(over)]$Q.Value_Bias
+saveRDS(MAPT_HiChIP, "~/myers/scAnalysis/Corces_HiChIP/MAPT_loops.rds")
+
+grna_uniq$Corces_HiChIP<-grna_uniq$HiChIP_q<0.01
+write.csv(grna_uniq, "~?myers")
+```
+
+
+
+
+
+
+
+---
+---
+
+# 45894000
+
+
+---
+---
+
+
+
+
+
+
+

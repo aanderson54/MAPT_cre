@@ -237,7 +237,7 @@ pre code {
 <div id="cultured-neuron-scmultiomics" class="section level2">
 <h2>Cultured neuron scMultiomics</h2>
 <p>Format Links</p>
-<pre class="r"><code>part1&lt;-import(&quot;~/myers/multiomics_cellranger/210330/aggr/outs/analysis/feature_linkage/feature_linkage.bedpe&quot;, format=&quot;bedpe&quot;)
+<pre class="r"><code>part1&lt;-import(&quot;~/outs/analysis/feature_linkage/feature_linkage.bedpe&quot;, format=&quot;bedpe&quot;)
 
 a10&lt;-as.data.frame(part1)
 a10&lt;-a10[which(a10$NA.2!=&quot;peak-peak&quot;),]
@@ -269,11 +269,11 @@ a10&lt;-a10[which(abs(a10$score)&gt;0.2),]
 a10&lt;-a10[,c(19,20,21,22,12,13,14, 16,17,18)]
 colnames(a10)[c(1,2,3,8,9,10)]&lt;-c(&quot;seqnames&quot;,&quot;start&quot;,&quot;end&quot;, &quot;signac.seqnames&quot;,&quot;signac.start&quot;,&quot;signac.end&quot;)
 a10.gr&lt;-GRanges(a10)
-saveRDS(a10.gr,&quot;~/myers/scAnalysis/NPC_multi/210330_links_aggr.rds&quot;)</code></pre>
+saveRDS(a10.gr,&quot;~/NPC_multi/210330_links_aggr.rds&quot;)</code></pre>
 <div id="pre-processing" class="section level3">
 <h3>pre-processing</h3>
 <p>All QC filtering, normalization, and dimension reduction</p>
-<pre class="r"><code>data.data &lt;- Read10X(data.dir = &quot;/cluster/home/aanderson/myers/multiomics_cellranger/210330/aggr/outs/filtered_feature_bc_matrix/&quot;)
+<pre class="r"><code>data.data &lt;- Read10X(data.dir = &quot;/~/multiomics_cellranger/210330/aggr/outs/filtered_feature_bc_matrix/&quot;)
 rna_counts &lt;- data.data$`Gene Expression`
 atac_counts &lt;- data.data$Peaks
 
@@ -302,7 +302,7 @@ annotations &lt;- GetGRangesFromEnsDb(ensdb = EnsDb.Hsapiens.v86)
 seqlevelsStyle(annotations) &lt;- &#39;UCSC&#39;
 genome(annotations) &lt;- &quot;hg38&quot;
 
-frag.file &lt;- paste0(&quot;/cluster/home/aanderson/myers/multiomics_cellranger/210330/aggr/outs/atac_fragments.tsv.gz&quot;)
+frag.file &lt;- paste0(&quot;~/aggr/outs/atac_fragments.tsv.gz&quot;)
 chrom_assay &lt;- CreateChromatinAssay(
   counts = atac_counts,
   sep = c(&quot;:&quot;, &quot;-&quot;),
@@ -348,15 +348,15 @@ data$day&lt;-ifelse(data$bar==1, &quot;NPC&quot;,
 
 
 
-pdf(&quot;~/myers/scAnalysis/plots/220405/Cultured_neuron_umap.pdf&quot;)
+pdf(&quot;~/plots/220405/Cultured_neuron_umap.pdf&quot;)
 DimPlot(data, reduction=&quot;wnn.umap&quot;, group.by=&quot;day&quot;)+scale_fill_manual(values=c(&quot;#09179B&quot;,&quot;#37C5E8&quot;, &quot;#1ABE76&quot;))
 dev.off()
-pdf(&quot;~/myers/scAnalysis/plots/220405/Cultured_neuron_umap_cluster.pdf&quot;)
+pdf(&quot;~/plots/220405/Cultured_neuron_umap_cluster.pdf&quot;)
 DimPlot(data, reduction=&quot;wnn.umap&quot;)
 dev.off()
 
 
-pdf(&quot;~/myers/scAnalysis/plots/220405/Cultured_neuron_UMIs.pdf&quot;)
+pdf(&quot;~/plots/220405/Cultured_neuron_UMIs.pdf&quot;)
 FeaturePlot(data, reduction=&quot;wnn.umap&quot;, features=&quot;nCount_RNA&quot;)
 dev.off()</code></pre>
 </div>
@@ -400,7 +400,7 @@ tmp5$cluster&lt;-&quot;5&quot;
 tmp6$cluster&lt;-&quot;6&quot;
 
 tmp&lt;-rbind(tmp0,tmp1,tmp2,tmp3,tmp4,tmp5,tmp6)
-write.csv(tmp, &quot;~/myers/scAnalysis/NPC_multi/GO_terms_preFilter_clusters.csv&quot;)
+write.csv(tmp, &quot;~/NPC_multi/GO_terms_preFilter_clusters.csv&quot;)
 
 #remove cells that top expressed genes are all RP and MT  
 ###################################################################################
@@ -424,10 +424,10 @@ data&lt;-RunUMAP(data,nn.name=&quot;weighted.nn&quot;, reduction.name=&quot;wnn.
 data&lt;-FindClusters(data, graph.name=&quot;wknn&quot;, resolution=0.4)
 
 
-pdf(&quot;~/myers/scAnalysis/plots/220405/Cultured_neuron_umap_filtered.pdf&quot;)
+pdf(&quot;~/plots/220405/Cultured_neuron_umap_filtered.pdf&quot;)
 DimPlot(data, reduction=&quot;wnn.umap&quot;, group.by=&quot;day&quot;)+scale_fill_manual(values=c(&quot;#09179B&quot;,&quot;#37C5E8&quot;, &quot;#1ABE76&quot;))
 dev.off()
-pdf(&quot;~/myers/scAnalysis/plots/220405/Cultured_neuron_umap_cluster_filtered.pdf&quot;)
+pdf(&quot;~/plots/220405/Cultured_neuron_umap_cluster_filtered.pdf&quot;)
 DimPlot(data, reduction=&quot;wnn.umap&quot;)
 dev.off()</code></pre>
 </div>
@@ -449,30 +449,30 @@ data$order&lt;-factor(data$order, levels=c(1,2,3))
 Idents(data)&lt;-data$order
 degs&lt;-FindAllMarkers(data)
 degs_sig&lt;-degs[which(degs$p_val_adj&lt;0.01 &amp; degs$avg_log2FC&gt;0.5),]
-write.csv(degs_sig, &quot;~/myers/scAnalysis/NPC_multi/XCL4_finalClusters_DEGs.csv&quot;)
+write.csv(degs_sig, &quot;~/NPC_multi/XCL4_finalClusters_DEGs.csv&quot;)
 
 ra&lt;-rowAnnotation(cluster=g2$Term)
 ht2=Heatmap(scale, cluster_rows=T,show_row_dend=F,cluster_columns=F,col=colorRamp2(c(-1,0,2),viridis(3)),  name=&quot;Avg Exp&quot;,  show_column_names=T, show_row_names=T, column_title=NULL,row_names_gp = gpar(fontsize = 10), row_names_side = &quot;left&quot;, left_annotation=ra)
 
-pdf(&quot;~/myers/scAnalysis/plots/XCL4_markers_byTimePoint.pdf&quot;, width=8, height=6)
+pdf(&quot;~/plots/XCL4_markers_byTimePoint.pdf&quot;, width=8, height=6)
 ht2
 dev.off()
 
 
-pdf(&quot;~/myers/scAnalysis/plots/XCL4_UMAP_w_vlnplot_markers_ordered.pdf&quot;, width=7, height=6)
+pdf(&quot;~/plots/XCL4_UMAP_w_vlnplot_markers_ordered.pdf&quot;, width=7, height=6)
 p1&lt;-DimPlot(data, reduction=&quot;wnn.umap&quot;, group.by=&quot;order&quot;,cols=c(&quot;navy&quot;,&quot;dodgerblue&quot;,&quot;skyblue&quot;), label=T, label.size=7, repel=T)&amp;theme(legend.position=&quot;none&quot;)
 p2&lt;-VlnPlot(data, features=c(&quot;SOX5&quot;, &quot;DCX&quot;,&quot;NEAT1&quot;), group.by=&quot;order&quot;,pt.size=0, cols=c(&quot;navy&quot;,&quot;dodgerblue&quot;,&quot;skyblue&quot;), ncol=1)&amp;ylab(&quot;&quot;)
 p1+p2
 dev.off()
 
-pdf(&quot;~/myers/scAnalysis/plots/XCL4_UMAP_w_vlnplot_markers_ordered_wMAPT.pdf&quot;, width=7, height=7)
+pdf(&quot;~/plots/XCL4_UMAP_w_vlnplot_markers_ordered_wMAPT.pdf&quot;, width=7, height=7)
 p1&lt;-DimPlot(data, reduction=&quot;wnn.umap&quot;, group.by=&quot;order&quot;,cols=c(&quot;navy&quot;,&quot;dodgerblue&quot;,&quot;skyblue&quot;),)&amp;theme(legend.position=&quot;none&quot;)&amp;ggtitle(&quot;&quot;)
 p2&lt;-VlnPlot(data, features=c(&quot;SOX5&quot;, &quot;NEAT1&quot;,&quot;DCX&quot;,&quot;MAPT&quot;), group.by=&quot;order&quot;,pt.size=0, cols=c(&quot;navy&quot;,&quot;dodgerblue&quot;,&quot;skyblue&quot;), ncol=1, combine=T)&amp;ylab(&quot;&quot;)&amp;xlab(&quot;Cluster&quot;)
 p1+p2
 dev.off()
 
 
-pdf(&quot;~/myers/scAnalysis/plots/XCL4_UMAP_w_vlnplot_MAPT_ordered.pdf&quot;, width=7, height=6)
+pdf(&quot;~/plots/XCL4_UMAP_w_vlnplot_MAPT_ordered.pdf&quot;, width=7, height=6)
 p1&lt;-DimPlot(data, reduction=&quot;wnn.umap&quot;, group.by=&quot;order&quot;,cols=c(&quot;navy&quot;,&quot;dodgerblue&quot;,&quot;skyblue&quot;))&amp;theme(legend.position=&quot;none&quot;)
 p2&lt;-VlnPlot(data, features=&quot;MAPT&quot;, group.by=&quot;order&quot;,pt.size=0, cols=c(&quot;navy&quot;,&quot;dodgerblue&quot;,&quot;skyblue&quot;), ncol=1)&amp;ylab(&quot;&quot;)
  p1+p2
@@ -481,12 +481,12 @@ dev.off()
 
 pr&lt;-as.data.frame(prop.table(table(data$day, data$order),2))
 pr$Var2&lt;-factor(pr$Var2, levels=c(3,2,1))
-pdf(&quot;~/myers/scAnalysis/plots/Prop_day_inCluster.pdf&quot;, width=3,height=4)
+pdf(&quot;~/plots/Prop_day_inCluster.pdf&quot;, width=3,height=4)
 ggplot(pr, aes(y=Var2, x=Freq, fill=Var1))+geom_bar(stat=&quot;identity&quot;)+theme_classic()+scale_fill_manual(values=c(&quot;rosybrown&quot;,&quot;salmon&quot;,&quot;darkred&quot;))
 dev.off()</code></pre>
 <div id="go" class="section level4">
 <h4>GO</h4>
-<pre class="r"><code>degs_sig&lt;-read.csv(&quot;~/myers/scAnalysis/NPC_multi/XCL4_finalClusters_DEGs.csv&quot;)
+<pre class="r"><code>degs_sig&lt;-read.csv(&quot;~/NPC_multi/XCL4_finalClusters_DEGs.csv&quot;)
 dbs &lt;- c(&quot;GO_Molecular_Function_2021&quot;, &quot;GO_Cellular_Component_2021&quot;, &quot;GO_Biological_Process_2021&quot;, &quot;KEGG_2021_Human&quot;,&quot;Azimuth_Cell_Types_2021&quot;)
 
 
@@ -506,7 +506,7 @@ head(go3[[&quot;GO_Molecular_Function_2021&quot;]])</code></pre>
 </div>
 <div id="link-plot-fig1" class="section level3">
 <h3>Link Plot (Fig1)</h3>
-<pre class="r"><code>xcl4_links&lt;-readRDS(&quot;~/myers/scAnalysis/NPC_multi/210330_links_aggr.rds&quot;)
+<pre class="r"><code>xcl4_links&lt;-readRDS(&quot;~/NPC_multi/210330_links_aggr.rds&quot;)
 xcl4_mapt&lt;-xcl4_links[which(xcl4_links$gene==&quot;MAPT&quot;),]
 peaks&lt;-paste0(seqnames(xcl4_mapt),&quot;-&quot;,start(xcl4_mapt)-1,&quot;-&quot;, end(xcl4_mapt))
 
@@ -548,7 +548,7 @@ gene_plot&lt;-AnnotationPlot(data, region=region)
 
 
 p&lt;-CombineTracks(plotlist=list(cov_plot,link_plotA, gene_plot),expression.plot=expr_plot, widths=c(8,1), heights=c(4,2,2))
-pdf(paste0(&quot;~/myers/scAnalysis/plots/MAPT_XCL4_linkPlot_byOrderedCluster.pdf&quot;), width=8, height=8)
+pdf(paste0(&quot;~/plots/MAPT_XCL4_linkPlot_byOrderedCluster.pdf&quot;), width=8, height=8)
 p
 dev.off()
 
@@ -562,7 +562,7 @@ dev.off()
 df&lt;-data.frame(mapt=xcl4@assays$RNA@data[&quot;MAPT&quot;,], day=xcl4$day, Cluster=xcl4$Cluster)
 df$day&lt;-factor(df$day, levels=rev(c(&quot;NPC&quot;,&quot;day14&quot;,&quot;day21&quot;)))
 df$Cluster&lt;-factor(df$Cluster)
-pdf(&quot;~/myers/scAnalysis/plots/XCL4_MAPT_expression_byCluster.pdf&quot;, width=3,height=5)
+pdf(&quot;~/plots/XCL4_MAPT_expression_byCluster.pdf&quot;, width=3,height=5)
 ggplot(df, aes(y=Cluster, x=mapt, fill=Cluster))+geom_boxplot()+scale_fill_manual(values=c(&quot;navy&quot;,&quot;dodgerblue&quot;,&quot;skyblue&quot;))+theme_classic()+xlab(&quot;Normalized Expression&quot;)+ylab(&quot;&quot;)+theme(legend.position=&quot;none&quot;)
 dev.off()
 
@@ -573,7 +573,7 @@ Idents(xcl4)&lt;-xcl4$Cluster
 region&lt;-GRanges(&quot;chr17:45190558-45191396&quot;)
 region&lt;-resize(region, width=2500, fix=&quot;center&quot;)
 
-pdf(&quot;~/myers/scAnalysis/plots/XCL4_nonNPC_ATAC_peak_MAPTlink.pdf&quot;)
+pdf(&quot;~/plots/XCL4_nonNPC_ATAC_peak_MAPTlink.pdf&quot;)
 Idents(xcl4)&lt;-xcl4$day
 p1=CoveragePlot(object=xcl4, region=region,  assay=&quot;ATAC&quot;,annotation=F,window=200,peaks=F, links=F, )&amp;scale_fill_manual(values=c(&quot;rosybrown2&quot;,&quot;salmon&quot;,&quot;darkred&quot;))
 Idents(xcl4)&lt;-xcl4$Cluster
@@ -585,10 +585,10 @@ dev.off()</code></pre>
 <h4>Dist to TSS (S2)</h4>
 <pre class="r"><code>dist&lt;-as.data.frame(abs(xcl4_links$signac.start-xcl4_links$signac.end))
 
-c2&lt;-GRanges(read.csv(&quot;~/myers/scAnalysis/MAPT_links/ALL_1Mb_links.csv&quot;))
+c2&lt;-GRanges(read.csv(&quot;~/MAPT_links/ALL_1Mb_links.csv&quot;))
 dist&lt;-data.frame(value=c(abs(c2$signac.start-c2$signac.end),abs(xcl4_links$signac.start-xcl4_links$signac.end)), variable=c(rep(&quot;Tissue&quot;,length(c2)), rep(&quot;XCL4&quot;,length(xcl4_links))))
 
-pdf(&quot;~/myers/scAnalysis/plots/AllGene_distanceToTSS_XCL4_DLPFC.pdf&quot;)
+pdf(&quot;~/plots/AllGene_distanceToTSS_XCL4_DLPFC.pdf&quot;)
 ggplot(dist[which(dist$value&lt;1000000),], aes(x=variable,y=value,fill=variable))+geom_boxplot(alpha=0.9)+theme_classic()+scale_fill_manual(values=c(&quot;skyblue3&quot;,&quot;lavender&quot;))+ylab(&quot;Dist to TSS (bp)&quot;)+theme(axis.text=element_text(size=6))+theme(axis.text=element_text(size=10),axis.title=element_text(size=15), legend.position=&quot;none&quot;)
 dev.off()
 
@@ -597,7 +597,7 @@ xcl4_mapt&lt;-xcl4_links[which(xcl4_links$gene==&quot;MAPT&quot;),]
 c2_mapt&lt;-c2[which(c2$gene==&quot;MAPT&quot;),]
 dist&lt;-data.frame(value=c(abs(c2_mapt$signac.start-c2_mapt$signac.end),abs(xcl4_mapt$signac.start-xcl4_mapt$signac.end)), variable=c(rep(&quot;Tissue&quot;,length(c2_mapt)), rep(&quot;XCL4&quot;,length(xcl4_mapt))))
 
-pdf(&quot;~/myers/scAnalysis/plots/MAPT_distanceToTSS_XCL4_DLPFC_violin.pdf&quot;, width=4,height=6)
+pdf(&quot;~/plots/MAPT_distanceToTSS_XCL4_DLPFC_violin.pdf&quot;, width=4,height=6)
 ggplot(dist[which(dist$value&lt;1000000),], aes(x=variable,y=value,fill=variable))+geom_violin(alpha=0.9)+theme_classic()+scale_fill_manual(values=c(&quot;skyblue3&quot;,&quot;lavender&quot;))+ylab(&quot;Link Distance to MAPT TSS (bp)&quot;)+theme(axis.text=element_text(size=10),axis.title=element_text(size=15), legend.position=&quot;none&quot;)
 dev.off()
 
@@ -621,14 +621,14 @@ pnorm(C$value[2], mean=A$value[2], sd=B$value[2], lower.tail=F)
 dist&lt;-as.data.frame(abs(xcl4_links$signac.start-xcl4_links$signac.end))
 dist$MAPT&lt;-ifelse(xcl4_links$gene==&quot;MAPT&quot;, &quot;MAPT&quot;,&quot;Global&quot;)
 colnames(dist)[1]&lt;-&quot;Dist&quot;
-pdf(&quot;~/myers/scAnalysis/plots/DistTSS_xcl4_links_global_MAPT.pdf&quot;, width=4, height=5)
+pdf(&quot;~/plots/DistTSS_xcl4_links_global_MAPT.pdf&quot;, width=4, height=5)
 ggplot(dist[which(dist$Dist&lt;1000000),], aes(y=Dist, x=MAPT,fill=MAPT))+geom_boxplot()+geom_violin(alpha=0.5)+ylab(&quot;Link Distance to TSS (bp)&quot;)+theme_classic()+scale_fill_manual(values=c(&quot;darkseagreen3&quot;, &quot;honeydew&quot;))+theme(legend.position=&quot;none&quot;)+xlab(&quot;&quot;)
 dev.off()
 
 dist&lt;-as.data.frame(abs(m1$signac.start-m1$signac.end))
 dist$MAPT&lt;-ifelse(m1$gene==&quot;MAPT&quot;, &quot;MAPT&quot;,&quot;Global&quot;)
 colnames(dist)[1]&lt;-&quot;Dist&quot;
-pdf(&quot;~/myers/scAnalysis/plots/DistTSS_tissue_global_MAPT.pdf&quot;, width=4, height=5)
+pdf(&quot;~/plots/DistTSS_tissue_global_MAPT.pdf&quot;, width=4, height=5)
 ggplot(dist[which(dist$Dist&lt;1000000),], aes(y=Dist, x=MAPT,fill=MAPT))+geom_boxplot()+geom_violin(alpha=0.5)+ylab(&quot;Link Distance to TSS (bp)&quot;)+theme_classic()+scale_fill_manual(values=c(&quot;darkseagreen3&quot;, &quot;honeydew&quot;))+theme(legend.position=&quot;none&quot;)+xlab(&quot;&quot;)
 dev.off()</code></pre>
 </div>
@@ -650,7 +650,7 @@ t1&lt;-table(xcl4_keep$peak)
 t2&lt;-table(c2_keep$peak)
 
 dist&lt;-data.frame(value=c(t1,t2),variable=c(rep(&quot;XCL4&quot;,length(t1)),rep(&quot;Tissue&quot;,length(t2))))
-pdf(&quot;~/myers/scAnalysis/plots/MAPT_linksperMAPT_linked-peak_XCL4_DLPFC_violin.pdf&quot;, width=4, height=6)
+pdf(&quot;~/plots/MAPT_linksperMAPT_linked-peak_XCL4_DLPFC_violin.pdf&quot;, width=4, height=6)
 ggplot(dist, aes(x=variable,y=value,fill=variable))+geom_violin(alpha=0.9)+theme_classic()+scale_fill_manual(values=c(&quot;skyblue3&quot;,&quot;lavender&quot;))+ylab(&quot;Links per MAPT-linked peak&quot;)+theme(axis.text=element_text(size=10), axis.title=element_text(size=15), legend.position=&quot;none&quot;)
 dev.off()
 
@@ -658,7 +658,7 @@ dev.off()
 t1&lt;-table(xcl4_links$peak)
 t2&lt;-table(c2$peak)
 dist&lt;-data.frame(value=c(t1,t2),variable=c(rep(&quot;XCL4&quot;,length(t1)),rep(&quot;Tissue&quot;,length(t2))))
-pdf(&quot;~/myers/scAnalysis/plots/All_links_per_peak_XCL4_DLPFC.pdf&quot;)
+pdf(&quot;~/plots/All_links_per_peak_XCL4_DLPFC.pdf&quot;)
 ggplot(dist, aes(x=variable,y=value,fill=variable))+geom_boxplot(alpha=0.9)+theme_classic()+scale_fill_manual(values=c(&quot;skyblue3&quot;,&quot;lavender&quot;))+ylab(&quot;Links per peak&quot;)+theme(axis.text=element_text(size=10),axis.title=element_text(size=15), legend.position=&quot;none&quot;)
 dev.off()
 
@@ -667,21 +667,21 @@ dev.off()
 xcl4_links$peak&lt;-paste0(seqnames(xcl4_links),&quot;-&quot;,start(xcl4_links),&quot;-&quot;,end(xcl4_links))
 tab&lt;-as.data.frame(table(xcl4_links$peak))
 tab$MAPT&lt;-ifelse(tab$Var1 %in% xcl4_links[which(xcl4_links$gene==&quot;MAPT&quot;),]$peak, &quot;MAPT&quot;,&quot;Global&quot;)
-pdf(&quot;~/myers/scAnalysis/plots/LinksPerPeak_xcl4_links_global_MAPT.pdf&quot;, width=4, height=5)
+pdf(&quot;~/plots/LinksPerPeak_xcl4_links_global_MAPT.pdf&quot;, width=4, height=5)
 ggplot(tab, aes(y=Freq, x=MAPT,fill=MAPT))+geom_boxplot()+geom_violin(alpha=0.5)+ylab(&quot;Links per peak&quot;)+theme_classic()+scale_fill_manual(values=c(&quot;darkseagreen3&quot;, &quot;honeydew&quot;))+theme(legend.position=&quot;none&quot;)+xlab(&quot;&quot;)
 dev.off()
 
 m1$peak&lt;-paste0(seqnames(m1),&quot;-&quot;,start(m1),&quot;-&quot;,end(m1))
 tab&lt;-as.data.frame(table(m1$peak))
 tab$MAPT&lt;-ifelse(tab$Var1 %in% m1[which(m1$gene==&quot;MAPT&quot;),]$peak, &quot;MAPT&quot;,&quot;Global&quot;)
-pdf(&quot;~/myers/scAnalysis/plots/LinksPerPeak_tissue_global_MAPT.pdf&quot;, width=4, height=5)
+pdf(&quot;~/plots/LinksPerPeak_tissue_global_MAPT.pdf&quot;, width=4, height=5)
 ggplot(tab, aes(y=Freq, x=MAPT,fill=MAPT))+geom_boxplot()+geom_violin(alpha=0.5)+ylab(&quot;Links per peak&quot;)+theme_classic()+scale_fill_manual(values=c(&quot;darkseagreen3&quot;, &quot;honeydew&quot;))+theme(legend.position=&quot;none&quot;)+xlab(&quot;&quot;)
 dev.off()</code></pre>
 </div>
 </div>
 <div id="enc-annot-fig1-s3" class="section level3">
 <h3>Enc annot (Fig1, S3)</h3>
-<pre class="r"><code>m1&lt;-GRanges(read.csv(&quot;~/myers/scAnalysis/MAPT_links/ALL_1Mb_links.csv&quot;))
+<pre class="r"><code>m1&lt;-GRanges(read.csv(&quot;~/MAPT_links/ALL_1Mb_links.csv&quot;))
 
 
 enc.rs&lt;-enc.rs[order(enc.rs$encodeLabel, decreasing=T),]
@@ -709,7 +709,7 @@ df&lt;-rbind(df,df2)
 
 
 df$Var1&lt;-factor(df$Var1,levels=rev(c(&quot;PLS&quot;,&quot;pELS&quot;,&quot;dELS&quot;,&quot;DNase-H3K4me3&quot;,&quot;CTCF-only&quot;, &quot;No Annotation&quot;)))
-pdf(&quot;~/myers/scAnalysis/plots/MAPT_link_annot_encode_ONLY.pdf&quot;, width=6, height=3)
+pdf(&quot;~/plots/MAPT_link_annot_encode_ONLY.pdf&quot;, width=6, height=3)
 ggplot(df, aes(x=Freq, y=data, fill=Var1))+geom_bar(stat=&quot;identity&quot;)+xlab(&quot;Proportion of Linked Peaks&quot;)+ylab(&quot;Data Type&quot;)+theme_classic()+scale_fill_manual(values=c(&quot;red&quot;,&quot;orange&quot;,&quot;gold&quot;,&quot;lightpink&quot;,&quot;skyblue&quot;, &quot;grey54&quot;),limits=c(&quot;PLS&quot;,&quot;pELS&quot;,&quot;dELS&quot;,&quot;DNase-H3K4me3&quot;,&quot;CTCF-only&quot;, &quot;No Annotation&quot;), name=&quot;&quot;)+theme(legend.position=&quot;top&quot;, axis.text=element_text(size=12),axis.title=element_text(size=15), legend.text=element_text(size=10))
 dev.off()
 
@@ -734,7 +734,7 @@ xcl4_links$annot&lt;-ifelse(xcl4_links$annot==&quot;DNase-CTCF-only&quot;, &quot
 xcl4_links$MAPT&lt;-ifelse(xcl4_links$gene==&quot;MAPT&quot;,&quot;MAPT&quot;,&quot;Global&quot;)
 df2&lt;-as.data.frame(prop.table(table(xcl4_links$annot, xcl4_links$MAPT),2))
 df2$Var1&lt;-factor(df2$Var1, levels=rev(c(&quot;PLS&quot;,&quot;pELS&quot;,&quot;dELS&quot;,&quot;DNase-H3K4me3&quot;,&quot;CTCF-only&quot;, &quot;No Annotation&quot;)))
-pdf(&quot;~/myers/scAnalysis/plots/XCL4_annotation_global_MAPT.pdf&quot;, width=6, height=3)
+pdf(&quot;~/plots/XCL4_annotation_global_MAPT.pdf&quot;, width=6, height=3)
 ggplot(df2, aes(x=Freq, y=Var2, fill=Var1))+geom_bar(alpha=0.85, color=&quot;black&quot;,stat=&quot;identity&quot;)+ylab(&quot;&quot;)+xlab(&quot;Proportion of Linked Peaks&quot;)+scale_fill_manual(values=c(&quot;red&quot;,&quot;orange&quot;,&quot;gold&quot;,&quot;lightpink&quot;,&quot;skyblue&quot;, &quot;grey54&quot;),limits=c(&quot;PLS&quot;,&quot;pELS&quot;,&quot;dELS&quot;,&quot;DNase-H3K4me3&quot;,&quot;CTCF-only&quot;, &quot;No Annotation&quot;), name=&quot;&quot;)+theme_classic()+theme(legend.position=&quot;top&quot;)+ylab(&quot;&quot;)
 dev.off()
 
@@ -747,7 +747,7 @@ m1$annot&lt;-ifelse(m1$annot==&quot;DNase-CTCF-only&quot;, &quot;CTCF-only&quot;
 m1$MAPT&lt;-ifelse(m1$gene==&quot;MAPT&quot;,&quot;MAPT&quot;,&quot;Global&quot;)
 df2&lt;-as.data.frame(prop.table(table(m1$annot, m1$MAPT),2))
 df2$Var1&lt;-factor(df2$Var1, levels=rev(c(&quot;PLS&quot;,&quot;pELS&quot;,&quot;dELS&quot;,&quot;DNase-H3K4me3&quot;,&quot;CTCF-only&quot;, &quot;No Annotation&quot;)))
-pdf(&quot;~/myers/scAnalysis/plots/Tissue_annotation_global_MAPT.pdf&quot;, width=6, height=3)
+pdf(&quot;~/plots/Tissue_annotation_global_MAPT.pdf&quot;, width=6, height=3)
 ggplot(df2, aes(x=Freq, y=Var2, fill=Var1))+geom_bar(alpha=0.85, color=&quot;black&quot;,stat=&quot;identity&quot;)+ylab(&quot;&quot;)+xlab(&quot;Proportion of Linked Peaks&quot;)+scale_fill_manual(values=c(&quot;red&quot;,&quot;orange&quot;,&quot;gold&quot;,&quot;lightpink&quot;,&quot;skyblue&quot;, &quot;grey54&quot;),limits=c(&quot;PLS&quot;,&quot;pELS&quot;,&quot;dELS&quot;,&quot;DNase-H3K4me3&quot;,&quot;CTCF-only&quot;, &quot;No Annotation&quot;), name=&quot;&quot;)+theme_classic()+theme(legend.position=&quot;top&quot;)+ylab(&quot;&quot;)
 dev.off()</code></pre>
 <div id="enrichments" class="section level4">
@@ -762,7 +762,7 @@ xcl4_links$annot&lt;-ifelse(xcl4_links$annot==&quot;DNase-CTCF-only&quot;, &quot
 
 
 
-xcl4&lt;-readRDS(&quot;~/myers/scAnalysis/NPC_multi/210330_filtered_multi.rds&quot;)
+xcl4&lt;-readRDS(&quot;~/NPC_multi/210330_filtered_multi.rds&quot;)
 DefaultAssay(xcl4)&lt;-&quot;ATAC&quot;
 ranges&lt;-granges(xcl4)
 over1&lt;-as.data.frame(findOverlaps(ranges, enc.rs,minoverlap=50))
@@ -783,7 +783,7 @@ for(i in 1:length(unique(df$links.Var1))){
 }</code></pre>
 <p>odds ratio odds ratio odds ratio odds ratio odds ratio odds ratio 0.2666529 0.7129079 0.5735509 0.4531327 1.5952736 6.1057860</p>
 <p>0.000000e+00 8.271817e-269 4.737357e-42 0.000000e+00 1.917130e-144 0.000000e+00</p>
-<pre class="r"><code>mapt&lt;-GRanges(read.csv(&quot;~/myers/scAnalysis/MAPT_links/MAPT_1Mb_links.csv&quot;))
+<pre class="r"><code>mapt&lt;-GRanges(read.csv(&quot;~/MAPT_links/MAPT_1Mb_links.csv&quot;))
 over1&lt;-as.data.frame(findOverlaps(mapt, enc.rs,minoverlap=50))
 over1&lt;-over1[!duplicated(over1$queryHits),]
 mapt$annot&lt;-&quot;No Annotation&quot;
@@ -791,7 +791,7 @@ mapt[over1$queryHits]$annot&lt;-enc.rs[over1$subjectHits,]$encodeLabel
 mapt$annot&lt;-ifelse(mapt$annot==&quot;DNase-CTCF-only&quot;, &quot;CTCF-only&quot;,mapt$annot)
 
 
-peak&lt;-GRanges(read.csv(&quot;~/myers/scAnalysis/RINdrop/CTpeaks_wK27olap.csv&quot;))
+peak&lt;-GRanges(read.csv(&quot;~/RINdrop/CTpeaks_wK27olap.csv&quot;))
 over1&lt;-as.data.frame(findOverlaps(peak, enc.rs,minoverlap=50))
 over1&lt;-over1[!duplicated(over1$queryHits),]
 peak$annot&lt;-&quot;No Annotation&quot;
@@ -816,34 +816,34 @@ for(i in 1:length(unique(df$peaks.Var1))){
 <h2>AD scLinks</h2>
 <p>Links were recalled at 1Mb</p>
 <pre class="bash"><code>
-export PATH=/cluster/home/aanderson/software/cellranger-arc-2.0.1:$PATH
+export PATH=/~software/cellranger-arc-2.0.1:$PATH
 
 
 
 cellranger-arc reanalyze --id=1Mb_links_AD \
---matrix=/cluster/home/aanderson/myers/multiomics_cellranger/211206/aggr_211206_210222/outs/filtered_feature_bc_matrix.h5 \
---atac-fragments=/cluster/home/aanderson/myers/multiomics_cellranger/211206/aggr_211206_210222/outs/atac_fragments.tsv.gz \
---reference=/cluster/home/aanderson/software/cellranger-arc-2.0.0/GRCh38 \
---peaks=/cluster/home/aanderson/myers/scAnalysis/CT_filtered_peaks.srt.bed \
---barcodes=/cluster/home/aanderson/myers/scAnalysis/MAPT_links/AD_cells.csv \
---params=/cluster/home/aanderson/myers/scAnalysis/MAPT_links/params.csv \
---agg=/cluster/home/aanderson/myers/multiomics_cellranger/211206/aggr_211206_210222/outs/aggr.csv \
+--matrix=/~/multiomics_cellranger/211206/aggr_211206_210222/outs/filtered_feature_bc_matrix.h5 \
+--atac-fragments=/~/multiomics_cellranger/211206/aggr_211206_210222/outs/atac_fragments.tsv.gz \
+--reference=/~software/cellranger-arc-2.0.0/GRCh38 \
+--peaks=/~CT_filtered_peaks.srt.bed \
+--barcodes=/~MAPT_links/AD_cells.csv \
+--params=/~MAPT_links/params.csv \
+--agg=/~/multiomics_cellranger/211206/aggr_211206_210222/outs/aggr.csv \
 --jobmode=slurm 
 
 
 
 cellranger-arc reanalyze --id=1Mb_links_Ctrl \
---matrix=/cluster/home/aanderson/myers/multiomics_cellranger/211206/aggr_211206_210222/outs/filtered_feature_bc_matrix.h5 \
---atac-fragments=/cluster/home/aanderson/myers/multiomics_cellranger/211206/aggr_211206_210222/outs/atac_fragments.tsv.gz \
---reference=/cluster/home/aanderson/software/cellranger-arc-2.0.0/GRCh38 \
---peaks=/cluster/home/aanderson/myers/scAnalysis/CT_filtered_peaks.srt.bed \
---barcodes=/cluster/home/aanderson/myers/scAnalysis/MAPT_links/Ctrl_cells.csv \
---params=/cluster/home/aanderson/myers/scAnalysis/MAPT_links/params.csv \
---agg=/cluster/home/aanderson/myers/multiomics_cellranger/211206/aggr_211206_210222/outs/aggr.csv \
+--matrix=/~/multiomics_cellranger/211206/aggr_211206_210222/outs/filtered_feature_bc_matrix.h5 \
+--atac-fragments=/~/multiomics_cellranger/211206/aggr_211206_210222/outs/atac_fragments.tsv.gz \
+--reference=/~software/cellranger-arc-2.0.0/GRCh38 \
+--peaks=/~CT_filtered_peaks.srt.bed \
+--barcodes=/~MAPT_links/Ctrl_cells.csv \
+--params=/~MAPT_links/params.csv \
+--agg=/~/multiomics_cellranger/211206/aggr_211206_210222/outs/aggr.csv \
 --jobmode=slurm 
 </code></pre>
 <pre class="r"><code>#AD
-part1&lt;-import(&quot;/cluster/home/aanderson/myers/scAnalysis/MAPT_links/1Mb_links_AD/outs/analysis/feature_linkage/feature_linkage.bedpe&quot;, format=&quot;bedpe&quot;)
+part1&lt;-import(&quot;/~MAPT_links/1Mb_links_AD/outs/analysis/feature_linkage/feature_linkage.bedpe&quot;, format=&quot;bedpe&quot;)
 
 a10&lt;-as.data.frame(part1)
 a10&lt;-a10[which(a10$NA.2!=&quot;peak-peak&quot;),]
@@ -872,7 +872,7 @@ a10$Peak_pos&lt;-paste0(a10$peak.seqnames,&quot;-&quot;,a10$peak.start-1,&quot;-
 
 a10&lt;-a10[which(abs(a10$score)&gt;0.2),]
 
-annot_peaks&lt;-read.csv(&quot;~/myers/scAnalysis/RINdrop/CTpeaks_wK27olap.csv&quot;)
+annot_peaks&lt;-read.csv(&quot;~/RINdrop/CTpeaks_wK27olap.csv&quot;)
 annot_peaks$peak&lt;-gsub(&quot;X&quot;,23, annot_peaks$peak)
 annot_peaks$peak&lt;-gsub(&quot;Y&quot;,24, annot_peaks$peak)
 a10_ct&lt;-merge(a10, annot_peaks, by.x=&quot;Peak_pos&quot;, by.y=&quot;peak&quot;)
@@ -882,7 +882,7 @@ colnames(a10_ct)[c(1,2,3,7)]&lt;-c(&quot;seqnames&quot;,&quot;start&quot;,&quot;
 
 
 #Ctrl
-part1&lt;-import(&quot;/cluster/home/aanderson/myers/scAnalysis/MAPT_links/1Mb_links_Ctrl/outs/analysis/feature_linkage/feature_linkage.bedpe&quot;, format=&quot;bedpe&quot;)
+part1&lt;-import(&quot;/~MAPT_links/1Mb_links_Ctrl/outs/analysis/feature_linkage/feature_linkage.bedpe&quot;, format=&quot;bedpe&quot;)
 c10&lt;-as.data.frame(part1)
 
 c10&lt;-c10[which(c10$NA.2!=&quot;peak-peak&quot;),]
@@ -936,14 +936,14 @@ all$signac.start&lt;-ifelse(all$group==&quot;AD&quot;, all$start.x.x, all$start.
 all$signac.end&lt;-ifelse(all$group==&quot;AD&quot;, all$end.x.x, all$end.x.y)
 all$distTSS&lt;-ifelse(all$group==&quot;AD&quot;, all$NA.1.x, all$NA.1.y)
 all&lt;-all[,c(2,3,4,1,5,6,14,7,15,13,17,21,22,23,24,25,26,27,28,31,32,33)]
-write.csv(all, &quot;~/myers/scAnalysis/MAPT_links/ALL_1Mb_links.csv&quot;)
+write.csv(all, &quot;~/MAPT_links/ALL_1Mb_links.csv&quot;)
 
 
 mapt&lt;-all[which(all$gene==&quot;MAPT&quot;),]
-write.csv(mapt, &quot;~/myers/scAnalysis/MAPT_links/MAPT_1Mb_links.csv&quot;)</code></pre>
+write.csv(mapt, &quot;~/MAPT_links/MAPT_1Mb_links.csv&quot;)</code></pre>
 <div id="link-plot-s2" class="section level3">
 <h3>Link plot (S2)</h3>
-<pre class="r"><code>mapt&lt;-read.csv(&quot;~/myers/scAnalysis/MAPT_links/MAPT_1Mb_links.csv&quot;)
+<pre class="r"><code>mapt&lt;-read.csv(&quot;~/MAPT_links/MAPT_1Mb_links.csv&quot;)
 
 
 signac_form&lt;-as.data.frame(ALL)[,-c(1,2,3,4)]
@@ -981,7 +981,7 @@ DefaultAssay(data)&lt;-&quot;ATAC&quot;
 gene_plot&lt;-AnnotationPlot(data, region=region) &amp;scale_x_continuous(breaks=c(44900000,45200000,45400000,45600000,45800000,46000000,46200000,46400000, 46600000,46900000))
 p&lt;-CombineTracks(plotlist=list(cov_plot,link_plotA, triosP,gene_plot),expression.plot=expr_plot, widths=c(8,1), heights=c(4,3,1,3))
 
-pdf(paste0(&quot;~/myers/scAnalysis/plots/MAPT_all1Mb_wTrios.pdf&quot;), width=10, height=7)
+pdf(paste0(&quot;~/plots/MAPT_all1Mb_wTrios.pdf&quot;), width=10, height=7)
 p
 dev.off()</code></pre>
 </div>
@@ -1002,35 +1002,35 @@ export PATH=$PATH:/usr/local/cuda/bin
 
 python generate_site_positions.py Arima chr17_hg38</code></pre>
 <pre class="bash"><code>cd Rep1
-/cluster/home/mmackiewicz/opt/juicer/scripts/juicer.sh -g hg38  -a iCell_Gluta_Neuron_Rep1_Lib1 -p /cluster/home/mmackiewicz/opt/juicer/references/hg38.chrom.sizes -y /cluster/home/mmackiewicz/opt/juicer/restriction_sites/hg38_Arima.txt -z /cluster/home/mmackiewicz/opt/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D /cluster/home/mmackiewicz/opt/juicer
+~/juicer/scripts/juicer.sh -g hg38  -a iCell_Gluta_Neuron_Rep1_Lib1 -p ~/juicer/references/hg38.chrom.sizes -y ~/juicer/restriction_sites/hg38_Arima.txt -z ~/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D ~/juicer
 
 
 cd Rep2
-/cluster/home/mmackiewicz/opt/juicer/scripts/juicer.sh -g hg38  -a iCell_Gluta_Neuron_Rep2_Lib1 -p /cluster/home/mmackiewicz/opt/juicer/references/hg38.chrom.sizes -y /cluster/home/mmackiewicz/opt/juicer/restriction_sites/hg38_Arima.txt -z /cluster/home/mmackiewicz/opt/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D /cluster/home/mmackiewicz/opt/juicer
+~/juicer/scripts/juicer.sh -g hg38  -a iCell_Gluta_Neuron_Rep2_Lib1 -p ~/juicer/references/hg38.chrom.sizes -y ~/juicer/restriction_sites/hg38_Arima.txt -z ~/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D ~/juicer
 
 cd Rep3
-/cluster/home/mmackiewicz/opt/juicer/scripts/juicer.sh -g hg38  -a iCell_Gluta_Neuron_Rep3_Lib1 -p /cluster/home/mmackiewicz/opt/juicer/references/hg38.chrom.sizes -y /cluster/home/mmackiewicz/opt/juicer/restriction_sites/hg38_Arima.txt -z /cluster/home/mmackiewicz/opt/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D /cluster/home/mmackiewicz/opt/juicer
+~/juicer/scripts/juicer.sh -g hg38  -a iCell_Gluta_Neuron_Rep3_Lib1 -p ~/juicer/references/hg38.chrom.sizes -y ~/juicer/restriction_sites/hg38_Arima.txt -z ~/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D ~/juicer
 
 
 
-/cluster/home/aanderson/software/juicer/CPU2/scripts/mega.sh -g hg38 -s DpnII
+/~software/juicer/CPU2/scripts/mega.sh -g hg38 -s DpnII
 
 
 
 cd ../GABA
 
 cd Rep1
-/cluster/home/mmackiewicz/opt/juicer/scripts/juicer.sh -g hg38  -a iCell_GABA_Neuron_Rep1_Lib1 -p /cluster/home/mmackiewicz/opt/juicer/references/hg38.chrom.sizes -y /cluster/home/mmackiewicz/opt/juicer/restriction_sites/hg38_Arima.txt -z /cluster/home/mmackiewicz/opt/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D /cluster/home/mmackiewicz/opt/juicer
+~/juicer/scripts/juicer.sh -g hg38  -a iCell_GABA_Neuron_Rep1_Lib1 -p ~/juicer/references/hg38.chrom.sizes -y ~/juicer/restriction_sites/hg38_Arima.txt -z ~/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D ~/juicer
 
 
 cd Rep2
-/cluster/home/mmackiewicz/opt/juicer/scripts/juicer.sh -g hg38  -a iCell_GABA_Neuron_Rep2_Lib1 -p /cluster/home/mmackiewicz/opt/juicer/references/hg38.chrom.sizes -y /cluster/home/mmackiewicz/opt/juicer/restriction_sites/hg38_Arima.txt -z /cluster/home/mmackiewicz/opt/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D /cluster/home/mmackiewicz/opt/juicer
+~/juicer/scripts/juicer.sh -g hg38  -a iCell_GABA_Neuron_Rep2_Lib1 -p ~/juicer/references/hg38.chrom.sizes -y ~/juicer/restriction_sites/hg38_Arima.txt -z ~/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D ~/juicer
 
 cd Rep3
-/cluster/home/mmackiewicz/opt/juicer/scripts/juicer.sh -g hg38  -a iCell_GABA_Neuron_Rep3_Lib1 -p /cluster/home/mmackiewicz/opt/juicer/references/hg38.chrom.sizes -y /cluster/home/mmackiewicz/opt/juicer/restriction_sites/hg38_Arima.txt -z /cluster/home/mmackiewicz/opt/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D /cluster/home/mmackiewicz/opt/juicer
+~/juicer/scripts/juicer.sh -g hg38  -a iCell_GABA_Neuron_Rep3_Lib1 -p ~/juicer/references/hg38.chrom.sizes -y ~/juicer/restriction_sites/hg38_Arima.txt -z ~/juicer/references/bwa_reference/UCSC_hg38/UCSC_hg38.fa -D ~/juicer
 
 
-/cluster/home/aanderson/software/juicer/CPU2/scripts/mega.sh -g hg38 -s DpnII
+/~software/juicer/CPU2/scripts/mega.sh -g hg38 -s DpnII
 </code></pre>
 <div id="plotgarden-fig2" class="section level2">
 <h2>plotgarden (Fig2)</h2>
@@ -1040,13 +1040,13 @@ library(org.Hs.eg.db)
 library(AnnotationHub)
 
 
-hicDataChrom &lt;- readHic(file = &quot;/cluster/home/mmackiewicz/for_nick/juicer_gluta_neurons/mega/aligned/inter_30.hic&quot;,
+hicDataChrom &lt;- readHic(file = &quot;~/juicer_gluta_neurons/mega/aligned/inter_30.hic&quot;,
     chrom = &quot;17&quot;, assembly = &quot;hg38&quot;,
     resolution = 5000, chromstart=44700000,chromend=47000000, res_scale = &quot;BP&quot;, norm = &quot;KR&quot;, matrix=&quot;o&quot;
 )
 
 #GABA CapC
-pairs&lt;-import(&quot;~/myers/capC/GABA_LSF_mega/hiccups_220712/merged_loops.bedpe&quot;)
+pairs&lt;-import(&quot;~/capC/GABA_LSF_mega/hiccups_220712/merged_loops.bedpe&quot;)
 pairs.df&lt;-as.data.frame(pairs)
 pairs.df&lt;-pairs.df[,c(1,2,3,6,7,8)]
 colnames(pairs.df)&lt;-c(&quot;chrom1&quot;,&quot;start1&quot;,&quot;end1&quot;,&quot;chrom2&quot;,&quot;start2&quot;,&quot;end2&quot;)
@@ -1059,7 +1059,7 @@ mapt.pairs&lt;-pairs.df[which(pairs.df$start1==45890001 | pairs.df$start2==45890
 
 
 #Gluta HiC
-pairs2&lt;-import(&quot;/cluster/home/lrizzardi/HiC_analysis/hiccups_220622/GLUTA_HiC_5kb_full/merged_loops.bedpe&quot;)
+pairs2&lt;-import(&quot;~/hiccups_220622/GLUTA_HiC_5kb_full/merged_loops.bedpe&quot;)
 pairs2.df&lt;-as.data.frame(pairs2)
 pairs2.df&lt;-pairs2.df[,c(1,2,3,6,7,8)]
 colnames(pairs2.df)&lt;-c(&quot;chrom1&quot;,&quot;start1&quot;,&quot;end1&quot;,&quot;chrom2&quot;,&quot;start2&quot;,&quot;end2&quot;)
@@ -1068,7 +1068,7 @@ pairs2.df$chrom1&lt;-&quot;chr17&quot;
 pairs2.df$chrom2&lt;-&quot;chr17&quot;
 
 # Gluta CapC
-pairs3&lt;-import(&quot;~/myers/capC/Gluta_mega_220714/hiccups_220712/merged_loops.bedpe&quot;)
+pairs3&lt;-import(&quot;~/capC/Gluta_mega_220714/hiccups_220712/merged_loops.bedpe&quot;)
 pairs3.df&lt;-as.data.frame(pairs3)
 pairs3.df&lt;-pairs3.df[,c(1,2,3,6,7,8)]
 colnames(pairs3.df)&lt;-c(&quot;chrom1&quot;,&quot;start1&quot;,&quot;end1&quot;,&quot;chrom2&quot;,&quot;start2&quot;,&quot;end2&quot;)
@@ -1079,7 +1079,7 @@ pairs3.sub&lt;-pairs3.df[which(pairs3.df$length&lt;=1000000),]
 
 
 # ENCODE annotations
-load(&quot;/cluster/home/broberts/Common_Data_Repository/iCellGABA_CRE_ENCODEstyle_GR.Rvar&quot;)
+load(&quot;~/iCellGABA_CRE_ENCODEstyle_GR.Rvar&quot;)
 enc=full_annot_encode_cre_def_GR
 enc.rs&lt;-resize(enc, 500, fix=&quot;center&quot;)
 
@@ -1087,9 +1087,9 @@ enc.rs&lt;-resize(enc, 500, fix=&quot;center&quot;)
 
 
 # ChIPseq/ATAC
-CTCF&lt;-readBigwig(&quot;/cluster/home/aanderson/myers/MAPT_project/ChIPseq/croo_output/CTCF_KOLF2.1J_Neuron/signal/pooled-rep/basename_prefix.pooled_x_basename_prefix.pooled.fc.signal.bigwig&quot;,  chrom=&quot;chr17&quot;, chromstart=44700000,chromend=47000000)
-h3k27ac&lt;-readBigwig(&quot;~/myers/MAPT_project/ChIPseq/croo_output/H3K27ac_KOLF2.1J_Neuron/signal/pooled-rep/basename_prefix.pooled_x_basename_prefix.pooled.fc.signal.bigwig&quot;,  chrom=&quot;chr17&quot;, chromstart=44700000,chromend=47000000)
-atac&lt;-readBigwig(&quot;/cluster/home/lrizzardi/data_for_others/221025_KOLF2.1J_ATAC_Bri/cromwell_output/signal/pooled-rep/KOLF2.1J_BrainPhys_25k_Day14_rep.pooled.fc.signal.bigwig&quot;,  chrom=&quot;chr17&quot;, chromstart=44700000,chromend=47000000)
+CTCF&lt;-readBigwig(&quot;~/MAPT_project/ChIPseq/croo_output/CTCF_KOLF2.1J_Neuron/signal/pooled-rep/basename_prefix.pooled_x_basename_prefix.pooled.fc.signal.bigwig&quot;,  chrom=&quot;chr17&quot;, chromstart=44700000,chromend=47000000)
+h3k27ac&lt;-readBigwig(&quot;~/MAPT_project/ChIPseq/croo_output/H3K27ac_KOLF2.1J_Neuron/signal/pooled-rep/basename_prefix.pooled_x_basename_prefix.pooled.fc.signal.bigwig&quot;,  chrom=&quot;chr17&quot;, chromstart=44700000,chromend=47000000)
+atac&lt;-readBigwig(&quot;~/221025_KOLF2.1J_ATAC_Bri/cromwell_output/signal/pooled-rep/KOLF2.1J_BrainPhys_25k_Day14_rep.pooled.fc.signal.bigwig&quot;,  chrom=&quot;chr17&quot;, chromstart=44700000,chromend=47000000)
 
 ###############################################################
 ###############################################################
@@ -1117,7 +1117,7 @@ gene_plot&lt;-AnnotationPlot(data, region=region)&amp;theme_void()
 params_a &lt;- pgParams(chrom = &quot;chr17&quot;, chromstart = 44890000, chromend = 46890000, assembly = &quot;hg38&quot;,x =1.5, width = 8.5, just = c(&quot;left&quot;, &quot;top&quot;), default.units =&quot;inches&quot;)
 
 
-pdf(&quot;~/myers/scAnalysis/plots/Gluta_HiC_MAPT_wNew_ChIP.pdf&quot;, width=10, height=10)
+pdf(&quot;~/plots/Gluta_HiC_MAPT_wNew_ChIP.pdf&quot;, width=10, height=10)
 pageCreate(width = 11, height = 11, default.units = &quot;inches&quot;, showGuides=F)
 yy&lt;-3 
 hic_gm &lt;- plotHicTriangle(data = hicTmp, params = params_a,  zrange = c(0, 20), resolution = 5000,   y = 1, height = yy)
@@ -1210,7 +1210,7 @@ dev.off()</code></pre>
 <h2>loop annotation (Fig2)</h2>
 <p>-annotate first and second GRange separately -for capture-C, subset loops to just those to MAPT. -HiC has all loops called</p>
 <pre class="r"><code># GABA CapC
-pairs&lt;-import(&quot;~/myers/capC/GABA_LSF_mega/hiccups_220712/merged_loops.bedpe&quot;)
+pairs&lt;-import(&quot;~/capC/GABA_LSF_mega/hiccups_220712/merged_loops.bedpe&quot;)
 pairs.df&lt;-as.data.frame(pairs)
 pairs.df&lt;-pairs.df[,c(1,2,3,6,7,8)]
 colnames(pairs.df)&lt;-c(&quot;chrom1&quot;,&quot;start1&quot;,&quot;end1&quot;,&quot;chrom2&quot;,&quot;start2&quot;,&quot;end2&quot;)
@@ -1248,7 +1248,7 @@ a$Method&lt;-&quot;GABA_CapC&quot;
 ####################################################################################
 
 # GLuta CapC
-pairs3&lt;-import(&quot;~/myers/capC/Gluta_mega_220714/hiccups_220712/merged_loops.bedpe&quot;)
+pairs3&lt;-import(&quot;~/capC/Gluta_mega_220714/hiccups_220712/merged_loops.bedpe&quot;)
 pairs3.df&lt;-as.data.frame(pairs3)
 pairs3.df&lt;-pairs3.df[,c(1,2,3,6,7,8)]
 colnames(pairs3.df)&lt;-c(&quot;chrom1&quot;,&quot;start1&quot;,&quot;end1&quot;,&quot;chrom2&quot;,&quot;start2&quot;,&quot;end2&quot;)
@@ -1282,7 +1282,7 @@ b&lt;- as.data.frame(table(Gluta.pairs$pair))
 b$Method&lt;-&quot;Gluta_CapC&quot;
 
 ab&lt;-rbind(a,b)
-pdf(&quot;~/myers/scAnalysis/plots/CapC_loop_annotation_MAPT.pdf&quot;, width=5,height=5)
+pdf(&quot;~/plots/CapC_loop_annotation_MAPT.pdf&quot;, width=5,height=5)
 ggplot(ab, aes(x=Method, y=Freq, fill=Var1))+geom_bar(stat=&quot;identity&quot;)+theme_classic()+xlab(&quot;&quot;)+scale_fill_brewer(palette=&quot;Spectral&quot;, name=&quot;Annotation&quot;)+theme(axis.text=element_text(size=10), axis.title=element_text(size=12),legend.text=element_text(size=12))
 dev.off()
 
@@ -1294,7 +1294,7 @@ dev.off()
 
 #HiC
 
-pairs2&lt;-import(&quot;/cluster/home/lrizzardi/HiC_analysis/hiccups_220622/GLUTA_HiC_5kb_full/merged_loops.bedpe&quot;)
+pairs2&lt;-import(&quot;~/GLUTA_HiC_5kb_full/merged_loops.bedpe&quot;)
 pairs2.df&lt;-as.data.frame(pairs2)
 pairs2.df&lt;-pairs2.df[,c(1,2,3,6,7,8)]
 colnames(pairs2.df)&lt;-c(&quot;chrom1&quot;,&quot;start1&quot;,&quot;end1&quot;,&quot;chrom2&quot;,&quot;start2&quot;,&quot;end2&quot;)
@@ -1303,7 +1303,7 @@ pairs2.df$chrom2&lt;-paste0(&quot;chr&quot;, pairs2.df$chrom2)
 pairs2.df$length&lt;-pairs2.df$start2-pairs2.df$end1
 HiC.pairs&lt;-pairs2.df
 
-pdf(&quot;~/myers/scAnalysis/plots/HiC_averageLoopDist.pdf&quot;, width=3, height=4)
+pdf(&quot;~/plots/HiC_averageLoopDist.pdf&quot;, width=3, height=4)
 ggplot(pairs2.df, aes(y=log10(length), x=1))+geom_violin(fill=&quot;slategray&quot;)+theme_classic()
 dev.off()
 
@@ -1344,7 +1344,7 @@ TAB$Var1&lt;-as.character(TAB$Var1)
 TAB&lt;-TAB[order(-TAB$Freq),]
 top&lt;-TAB$Var1[1:5]
 TAB$Annotation&lt;-paste0(TAB$Var1,&quot;: &quot;, round(TAB$Freq,2)*100,&quot;%&quot;)
-pdf(&quot;~/myers/scAnalysis/plots/HiC_annot_loops_all.pdf&quot;)
+pdf(&quot;~/plots/HiC_annot_loops_all.pdf&quot;)
 ggplot(TAB, aes(x=&quot;&quot;, y=Freq, fill=Annotation)) +
   geom_bar(stat=&quot;identity&quot;, width=1, color=&quot;white&quot;) +
   coord_polar(&quot;y&quot;, start=0) +
@@ -1365,7 +1365,7 @@ TAB &lt;- TAB %&gt;%
   arrange(desc(Var1)) %&gt;%
   mutate(lab.ypos = cumsum(Freq) - 0.5*Freq)
 
-pdf(&quot;~/myers/scAnalysis/plots/HiC_annot_loops.pdf&quot;)
+pdf(&quot;~/plots/HiC_annot_loops.pdf&quot;)
 ggplot(TAB, aes(x=2, y=Freq, fill=Var1)) +
   geom_bar(stat=&quot;identity&quot;, width=1, color=&quot;white&quot;) +
   coord_polar(&quot;y&quot;, start=0) +
@@ -1404,9 +1404,9 @@ HiC.pairs2$annot&lt;-factor(HiC.pairs2$annot, levels=c(&quot;PLS&quot;,&quot;pEL
 # tissue &amp; culture scLinks: 65
 #Total: 77
 
-grna&lt;-read.csv(&quot;~/myers/scAnalysis/MAPT_links/MAPT_TestedRegions_SuppTable_BBR-2.csv&quot;)
-mapt&lt;-GRanges(read.csv(&quot;~/myers/scAnalysis/MAPT_links/MAPT_1Mb_links.csv&quot;))
-xcl4_links&lt;-readRDS(&quot;~/myers/scAnalysis/NPC_multi/210330_links_aggr.rds&quot;)
+grna&lt;-read.csv(&quot;~/MAPT_links/MAPT_TestedRegions_SuppTable_BBR-2.csv&quot;)
+mapt&lt;-GRanges(read.csv(&quot;~/MAPT_links/MAPT_1Mb_links.csv&quot;))
+xcl4_links&lt;-readRDS(&quot;~/NPC_multi/210330_links_aggr.rds&quot;)
 xcl4_mapt&lt;-xcl4_links[which(xcl4_links$gene==&quot;MAPT&quot;),]
 
 grna$start&lt;-grna$Design_Region_Start_hg38
@@ -1444,7 +1444,7 @@ tab&lt;-as.data.frame(prop.table(table(other$annot)))
 tab$Var1&lt;-factor(tab$Var1, levels=rev(c(&quot;PLS&quot;,&quot;pELS&quot;,&quot;dELS&quot;,&quot;DNase-H3K4me3&quot;,&quot;CTCF-only&quot;, &quot;No Annotation&quot;)))
 
 
-pdf(&quot;~/myers/scAnalysis/plots/Other_nominations_encode_annotation.pdf&quot;, width=5, height=2)
+pdf(&quot;~/plots/Other_nominations_encode_annotation.pdf&quot;, width=5, height=2)
 ggplot(tab, aes(y=as.factor(1),x=Freq, fill=Var1))+geom_bar(alpha=0.85, color=&quot;black&quot;,stat=&quot;identity&quot;)+scale_fill_manual(values=c(&quot;orange&quot;,&quot;lightgoldenrodyellow&quot;, &quot;grey54&quot;),limits=c(&quot;pELS&quot;,&quot;dELS&quot;, &quot;No Annotation&quot;),name=&quot;&quot;)+theme_classic()+ylab(&quot;Other Nomination&quot;)+xlab(&quot;Proportion of Regions&quot;)+theme(axis.text.y=element_blank(), legend.position=&quot;top&quot;)
 dev.off()
 
@@ -1525,9 +1525,9 @@ tab&lt;-as.data.frame(other) %&gt;% group_by(H3K27ac,H3K4me1,H3K4me3,ATAC,BrainT
 <div id="cell-lines-a" class="section level2">
 <h2>Cell lines (A)</h2>
 <p>From MAPT batch4 7136-NC-0008_51 7136-NC-0008_52 7136-NC-0008_53</p>
-<pre class="r"><code>counts&lt;-read.table(&quot;/cluster/home/aanderson/myers/quantseq/221109_KOLF2.1J_prelim/summary_unique.tsv&quot;, header=T)
+<pre class="r"><code>counts&lt;-read.table(&quot;/~/quantseq/221109_KOLF2.1J_prelim/summary_unique.tsv&quot;, header=T)
 
-gtf&lt;-rtracklayer::import(&quot;~/myers/scAnalysis/genes.gtf&quot;)
+gtf&lt;-rtracklayer::import(&quot;~/genes.gtf&quot;)
 gtf&lt;-gtf[which(gtf$type==&quot;gene&quot;),]
 conversion&lt;-as.data.frame(gtf)[c(10,13)]
 counts&lt;-merge(counts,conversion,by.x=&quot;id&quot;,by.y=&quot;gene_id&quot;)
@@ -1535,7 +1535,7 @@ counts&lt;-counts[!duplicated(counts$gene_name),]
 rownames(counts)&lt;-counts$gene_name
 
 
-load(&quot;/cluster/home/aanderson/myers/MAPT_project/RNAseq/lexoRNAseq_NPCNeuron_TC_outs_list.Rvar&quot;)
+load(&quot;/~/MAPT_project/RNAseq/lexoRNAseq_NPCNeuron_TC_outs_list.Rvar&quot;)
 key&lt;-list_outs$sample_key
 key&lt;-key[which(key$days_differentiating %in% c(0,16)),]
 xcl4_counts&lt;-list_outs$ord_gene_id_cpm_mat
@@ -1560,7 +1560,7 @@ df2&lt;-df[which(df$gene %in% c(&quot;MAPT&quot;,&quot;NES&quot;, &quot;SYT1&quo
 df2&lt;-df2[c(3,2,1,6,4,7,5),]
 rownames(df2)&lt;-c(&quot;MAPT&quot;, &quot;NPC (NES)&quot;, &quot;Neuron (SYT1)&quot;,&quot;Ast (AQP4)&quot;,&quot;Olig (MBP)&quot;, &quot;Mic (TREM2)&quot;, &quot;End (FLT1)&quot;)
 
-pdf(&quot;~/myers/scAnalysis/plots/Cell_line_marker_heatmap.pdf&quot;, width=4, height=6)
+pdf(&quot;~/plots/Cell_line_marker_heatmap.pdf&quot;, width=4, height=6)
 Heatmap(as.matrix(df2[,-c(1,4)]), cluster_rows=F, cluster_columns=F, col=colorRamp2(c(0,50,200,400), viridis(4)),row_names_side=&quot;left&quot;, name=&quot;CPM&quot; )
 dev.off()</code></pre>
 </div>
@@ -1570,7 +1570,7 @@ dev.off()</code></pre>
 <div id="diff-vs-undiff" class="section level3">
 <h3>diff vs undiff</h3>
 <p>3 BC1 NPC 3 SCT/XCL4 NPC 3 BC1 Neuron 3 SCT/XCL4 Neuron</p>
-<pre class="r"><code>capC_raw&lt;-read.table(&quot;/cluster/projects/ADFTD/BrightFocus-Working/ForNPCvsNeuron/out_12_rawpileup.txt&quot;)
+<pre class="r"><code>capC_raw&lt;-read.table(&quot;~/ForNPCvsNeuron/out_12_rawpileup.txt&quot;)
 rownames(capC_raw)&lt;-capC_raw$V1
 capC_raw&lt;-capC_raw[,-1]
 
@@ -1593,7 +1593,7 @@ sig&lt;-GRanges(sig)
   
   
 # DESeq2 on counts
-counts&lt;-read.table(&quot;/cluster/projects/ADFTD/BrightFocus-Working/ForNPCvsNeuron/out_12_bin_500_1000.txt&quot;)
+counts&lt;-read.table(&quot;~/ForNPCvsNeuron/out_12_bin_500_1000.txt&quot;)
 rownames(counts)&lt;-counts$V1
 counts&lt;-counts[,-1]
 cn&lt;-c(&quot;BC1_undiff_1&quot;,&quot;BC1_undiff_2&quot;,&quot;BC1_undiff_3&quot;,&quot;SCT_undiff_1&quot;,&quot;SCT_undiff_2&quot;,&quot;SCT_undiff_3&quot;,&quot;BC1_diff_1&quot;,&quot;BC1_diff_2&quot;,&quot;BC1_diff_3&quot;,&quot;SCT_diff_1&quot;,&quot;SCT_diff_2&quot;,&quot;SCT_diff_3&quot;)
@@ -1621,12 +1621,12 @@ res$padj&lt;-ifelse(is.na(res$padj), 1, res$padj)
 res$score&lt;-sign(res$log2FoldChange)* -log10(res$padj)
 seqlengths(res)&lt;-84276897
 res2&lt;-subsetByOverlaps(res, GRanges(&quot;chr17:45894000&quot;), maxgap=1000000)
-write.csv(as.data.frame(res2),&quot;~/myers/MAPT_project/differential_capC/Neuron_NPC_bin500_DESEq2.csv&quot;)
-export(res[,7],  &quot;~/myers/MAPT_project/differential_capC/Neuron_NPC_bin_2500_directional_p.signal.bw&quot;, format=&quot;bw&quot;)</code></pre>
+write.csv(as.data.frame(res2),&quot;~/MAPT_project/differential_capC/Neuron_NPC_bin500_DESEq2.csv&quot;)
+export(res[,7],  &quot;~/MAPT_project/differential_capC/Neuron_NPC_bin_2500_directional_p.signal.bw&quot;, format=&quot;bw&quot;)</code></pre>
 <pre class="r"><code>library(TxDb.Hsapiens.UCSC.hg38.knownGene)
 library(org.Hs.eg.db)
 
-capC_FC&lt;-readBigwig(&quot;~/myers/MAPT_project/differential_capC/Neuron_NPC_bin_500_directional_p.signal.bw&quot;,  chrom=&quot;chr17&quot;, chromstart=44700000,chromend=47000000)
+capC_FC&lt;-readBigwig(&quot;~/MAPT_project/differential_capC/Neuron_NPC_bin_500_directional_p.signal.bw&quot;,  chrom=&quot;chr17&quot;, chromstart=44700000,chromend=47000000)
 capC_FC$score&lt;-ifelse(capC_FC$score==Inf, 10, capC_FC$score)
 capC_FC$score&lt;-ifelse(capC_FC$score== -Inf, -10, capC_FC$score)
 
@@ -1645,7 +1645,7 @@ gene_plot&lt;-AnnotationPlot(xcl4, region=region)&amp;theme_void()
 
 
 
-pdf(&quot;~/myers/scAnalysis/plots/Differential_CapC_plotgardener_bin_500_directional_pvalue.pdf&quot;, width=7, height=5)
+pdf(&quot;~/plots/Differential_CapC_plotgardener_bin_500_directional_pvalue.pdf&quot;, width=7, height=5)
 pageCreate(width = 7, height = 5, default.units = &quot;inches&quot;, showGuides=F)
 
 p&lt;-plotSignal(capC_FC, params=params_a,chrom=&quot;chr17&quot;, negData=T,height=0.8,y=0.6, fill=c(&quot;red&quot;,&quot;blue&quot;), linecolor=c(&quot;red&quot;,&quot;blue&quot;))
@@ -1670,13 +1670,13 @@ dev.off()</code></pre>
 <div id="gaba-vs-gluta" class="section level3">
 <h3>GABA vs Gluta</h3>
 <p>3 iCell GABA 3 iCell Gluta</p>
-<pre class="r"><code>GABA1 &lt;- readHic(file = &quot;/cluster/home/aanderson/myers/capC/GABA/SL471414//aligned/inter_30.hic&quot;,
+<pre class="r"><code>GABA1 &lt;- readHic(file = &quot;/~/capC/GABA/SL471414//aligned/inter_30.hic&quot;,
     resolution = 10000, chromstart=44000000,chromend=47000000,res_scale = &quot;BP&quot;, norm = &quot;KR&quot;, matrix=&quot;o&quot;, chrom=&quot;17&quot;)
 
-GABA2 &lt;- readHic(file = &quot;/cluster/home/aanderson/myers/capC/GABA/SL471415//aligned/inter_30.hic&quot;,
+GABA2 &lt;- readHic(file = &quot;/~/capC/GABA/SL471415//aligned/inter_30.hic&quot;,
     chrom = &quot;17&quot;, assembly = &quot;hg38&quot;,
     resolution = 10000, chromstart=44000000,chromend=47000000, res_scale = &quot;BP&quot;, norm = &quot;KR&quot;, matrix=&quot;o&quot;)
-GABA3 &lt;- readHic(file = &quot;/cluster/home/aanderson/myers/capC/GABA/SL471416//aligned/inter_30.hic&quot;,
+GABA3 &lt;- readHic(file = &quot;/~/capC/GABA/SL471416//aligned/inter_30.hic&quot;,
     chrom = &quot;17&quot;, assembly = &quot;hg38&quot;,
     resolution = 10000, chromstart=44000000,chromend=47000000, res_scale = &quot;BP&quot;, norm = &quot;KR&quot;, matrix=&quot;o&quot;)
 
@@ -1690,13 +1690,13 @@ GABA3&lt;-GABA3[which(GABA3$region!=&quot;drop&quot;),]
 
 
 
-Gluta1 &lt;- readHic(file = &quot;/cluster/home/aanderson/myers/capC/Gluta/SL471411//aligned/inter.hic&quot;,
+Gluta1 &lt;- readHic(file = &quot;/~/capC/Gluta/SL471411//aligned/inter.hic&quot;,
     resolution = 10000, chromstart=44000000,chromend=47000000,res_scale = &quot;BP&quot;, norm = &quot;KR&quot;, matrix=&quot;o&quot;, chrom=&quot;17&quot;)
 
-Gluta2 &lt;- readHic(file = &quot;/cluster/home/aanderson/myers/capC/Gluta/SL471412//aligned/inter.hic&quot;,
+Gluta2 &lt;- readHic(file = &quot;/~/capC/Gluta/SL471412//aligned/inter.hic&quot;,
     chrom = &quot;17&quot;, assembly = &quot;hg38&quot;,
     resolution = 10000, chromstart=44000000,chromend=47000000, res_scale = &quot;BP&quot;, norm = &quot;KR&quot;, matrix=&quot;o&quot;)
-Gluta3 &lt;- readHic(file = &quot;/cluster/home/aanderson/myers/capC/Gluta/SL471413//aligned/inter.hic&quot;,
+Gluta3 &lt;- readHic(file = &quot;/~/capC/Gluta/SL471413//aligned/inter.hic&quot;,
     chrom = &quot;17&quot;, assembly = &quot;hg38&quot;,
     resolution = 10000, chromstart=44000000,chromend=47000000, res_scale = &quot;BP&quot;, norm = &quot;KR&quot;, matrix=&quot;o&quot;)
 
@@ -1791,11 +1791,11 @@ df$score&lt;-0
 df[queryHits(over)]$score&lt;-res[subjectHits(over)]$score
 seqlengths(df)&lt;-84276897
 
-export(df,  &quot;~/myers/MAPT_project/differential_capC/Gluta_GABA_differential_CapC_bin5000.bw&quot;, format=&quot;bw&quot;)</code></pre>
+export(df,  &quot;~/MAPT_project/differential_capC/Gluta_GABA_differential_CapC_bin5000.bw&quot;, format=&quot;bw&quot;)</code></pre>
 <pre class="r"><code>library(TxDb.Hsapiens.UCSC.hg38.knownGene)
 library(org.Hs.eg.db)
 
-capC_FC&lt;-readBigwig(&quot;~/myers/MAPT_project/differential_capC/Gluta_GABA_differential_CapC_bin5000.bw&quot;,  chrom=&quot;chr17&quot;, chromstart=44700000,chromend=47000000)
+capC_FC&lt;-readBigwig(&quot;~/MAPT_project/differential_capC/Gluta_GABA_differential_CapC_bin5000.bw&quot;,  chrom=&quot;chr17&quot;, chromstart=44700000,chromend=47000000)
 
 params_a &lt;- pgParams(chrom = &quot;chr17&quot;, chromstart = 44890000, chromend = 46890000, assembly = &quot;hg38&quot;,x =0.5, width = 5.5, just = c(&quot;left&quot;, &quot;top&quot;), default.units =&quot;inches&quot;)
 
@@ -1804,7 +1804,7 @@ params_a &lt;- pgParams(chrom = &quot;chr17&quot;, chromstart = 44890000, chrome
 gene_plot&lt;-AnnotationPlot(xcl4, region=region)&amp;theme_void()
 
 
-pdf(&quot;~/myers/scAnalysis/plots/Differential_CapC_Gluta_GABA_bin_5000_directional_pvalue.pdf&quot;, width=7, height=5)
+pdf(&quot;~/plots/Differential_CapC_Gluta_GABA_bin_5000_directional_pvalue.pdf&quot;, width=7, height=5)
 pageCreate(width = 7, height = 5, default.units = &quot;inches&quot;, showGuides=F)
 
 p&lt;-plotSignal(capC_FC, params=params_a,chrom=&quot;chr17&quot;, negData=T,height=0.8,y=0.6, fill=c(&quot;red&quot;,&quot;blue&quot;), linecolor=c(&quot;red&quot;,&quot;blue&quot;))
@@ -1832,18 +1832,18 @@ dev.off()</code></pre>
 <pre class="r"><code># GO TO sc
 
 
-capC_FC&lt;-readBigwig(&quot;~/myers/MAPT_project/differential_capC/Neuron_NPC_bin_500_directional_p.signal.bw&quot;,  chrom=&quot;chr17&quot;, chromstart=44700000,chromend=47000000)
+capC_FC&lt;-readBigwig(&quot;~/MAPT_project/differential_capC/Neuron_NPC_bin_500_directional_p.signal.bw&quot;,  chrom=&quot;chr17&quot;, chromstart=44700000,chromend=47000000)
 sig_capC&lt;-GRanges(capC_FC[which(abs(capC_FC$score)&gt;2),])
 sig_capC&lt;-resize(sig_capC, width=4000, fix=&quot;start&quot;)
 mcols(sig_capC)&lt;-NULL
 
-#ad_data&lt;-readRDS(&quot;~/myers/scAnalysis/RINdrop/final.rds&quot;)
+#ad_data&lt;-readRDS(&quot;~/RINdrop/final.rds&quot;)
 ad_data$predicted.id&lt;-factor(ad_data$predicted.id, levels=c(&quot;Astrocytes&quot;, &quot;Excitatory&quot;,&quot;Inhibitory&quot;,&quot;Microglia&quot;,&quot;Oligodendrocytes&quot;,&quot;OPCs&quot;, &quot;Endothelial&quot;,&quot;Pericytes&quot;))
 Idents(ad_data)&lt;-ad_data$predicted.id
 DefaultAssay(ad_data)&lt;-&quot;ATAC&quot;
 
 
-pdf(&quot;~/myers/scAnalysis/plots/Neuron_region_scAD_ATAC_wKOLF.pdf&quot;, width=7, height=7)
+pdf(&quot;~/plots/Neuron_region_scAD_ATAC_wKOLF.pdf&quot;, width=7, height=7)
 CoveragePlot(object = ad_data,region = region,annotation = TRUE, peaks=F, idents=c(&quot;Astrocytes&quot;, &quot;Excitatory&quot;,&quot;Inhibitory&quot;,&quot;Microglia&quot;,&quot;Oligodendrocytes&quot;,&quot;OPCs&quot;), ymax=700,window=300,  region.highlight= subsetByOverlaps(sig_capC, region))&amp;scale_fill_manual(values=c(&quot;darkgoldenrod1&quot;,&quot;cornflowerblue&quot;,&quot;seagreen3&quot;, &quot;mediumorchid3&quot;,&quot;coral3&quot;,&quot;firebrick&quot;))
 dev.off()
 
@@ -1851,12 +1851,12 @@ dev.off()
 
 # Add NGN2 ATAC
 c1&lt;-CoveragePlot(object = ad_data,region = region,annotation=F, peaks=F, idents=c(&quot;Astrocytes&quot;, &quot;Excitatory&quot;,&quot;Inhibitory&quot;,&quot;Microglia&quot;,&quot;Oligodendrocytes&quot;,&quot;OPCs&quot;), ymax=700,window=300,  region.highlight= subsetByOverlaps(sig_capC, region))&amp;scale_fill_manual(values=c(&quot;darkgoldenrod1&quot;,&quot;cornflowerblue&quot;,&quot;seagreen3&quot;, &quot;mediumorchid3&quot;,&quot;coral3&quot;,&quot;firebrick&quot;))
-atac_neuron&lt;-BigwigTrack(region,&quot;/cluster/home/mmackiewicz/Applications/ATAC/output/KOLF2.1J-NGN2_Neuron/signal/pooled-rep/basename_prefix.pooled.fc.signal.bigwig&quot;, smooth=200)&amp;scale_fill_manual(values=&quot;dodgerblue3&quot;)&amp;ylab(&quot;ATAC Neuron&quot;)&amp;theme(legend.position=&quot;none&quot;,axis.title.y=element_text(angle=90))
-atac_npc&lt;-BigwigTrack(region, &quot;/cluster/home/mmackiewicz/Applications/ATAC/output/KOLF2.1J-WT_NPCs/signal/pooled-rep/basename_prefix.pooled.fc.signal.bigwig&quot;, smooth=200)&amp;scale_fill_manual(values=&quot;deepskyblue&quot;)&amp;ylab(&quot;ATAC NPC&quot;)&amp;theme(legend.position=&quot;none&quot;,axis.title.y=element_text(angle=90))
+atac_neuron&lt;-BigwigTrack(region,&quot;~/KOLF2.1J-NGN2_Neuron/signal/pooled-rep/basename_prefix.pooled.fc.signal.bigwig&quot;, smooth=200)&amp;scale_fill_manual(values=&quot;dodgerblue3&quot;)&amp;ylab(&quot;ATAC Neuron&quot;)&amp;theme(legend.position=&quot;none&quot;,axis.title.y=element_text(angle=90))
+atac_npc&lt;-BigwigTrack(region, &quot;~/KOLF2.1J-WT_NPCs/signal/pooled-rep/basename_prefix.pooled.fc.signal.bigwig&quot;, smooth=200)&amp;scale_fill_manual(values=&quot;deepskyblue&quot;)&amp;ylab(&quot;ATAC NPC&quot;)&amp;theme(legend.position=&quot;none&quot;,axis.title.y=element_text(angle=90))
 gene_plot&lt;-AnnotationPlot(xcl4, region=region)
 
 p&lt;-CombineTracks(plotlist=list(c1, atac_neuron, atac_npc, gene_plot), heights=c(6,1,1,2))
-pdf(&quot;~/myers/scAnalysis/plots/Neuron_region_scAD_ATAC_wKOLF.pdf&quot;, width=7, height=7)
+pdf(&quot;~/plots/Neuron_region_scAD_ATAC_wKOLF.pdf&quot;, width=7, height=7)
 p
 dev.off()
 
@@ -1867,7 +1867,7 @@ dev.off()
 #   Differential CapC in same region
 
 
-capC_FC&lt;-readBigwig(&quot;~/myers/MAPT_project/differential_capC/Neuron_NPC_bin_500_directional_p.signal.bw&quot;,  chrom=&quot;chr17&quot;, chromstart=44700000,chromend=47000000)
+capC_FC&lt;-readBigwig(&quot;~/MAPT_project/differential_capC/Neuron_NPC_bin_500_directional_p.signal.bw&quot;,  chrom=&quot;chr17&quot;, chromstart=44700000,chromend=47000000)
 capC_FC$score&lt;-ifelse(capC_FC$score==Inf, 10, capC_FC$score)
 capC_FC$score&lt;-ifelse(capC_FC$score== -Inf, -10, capC_FC$score)
 
@@ -1883,7 +1883,7 @@ Annotation(xcl4)&lt;-annot
 region&lt;-GRanges(&quot;chr17:45224000-45320000&quot;)
 gene_plot&lt;-AnnotationPlot(xcl4, region=region)&amp;theme_void()
 
-pdf(&quot;~/myers/scAnalysis/plots/Differential_CapC_Neuron_NPC_zoomRegion.pdf&quot;, width=7, height=5)
+pdf(&quot;~/plots/Differential_CapC_Neuron_NPC_zoomRegion.pdf&quot;, width=7, height=5)
 pageCreate(width = 7, height = 5, default.units = &quot;inches&quot;, showGuides=F)
 
 p&lt;-plotSignal(capC_FC, params=params_a,chrom=&quot;chr17&quot;, negData=T,height=0.8,y=0.6, fill=c(&quot;red&quot;,&quot;blue&quot;), linecolor=c(&quot;red&quot;,&quot;blue&quot;))
@@ -2040,7 +2040,7 @@ umi_tools extract --extract-method=regex --bc-pattern=&#39;(?P&lt;umi_1&gt;.{6})
 # trimming
 echo &quot;trimming&quot;
 mkdir -p ${fastq_trimmed}/${sample}/
-bbduk.sh in=${fastq_extracted}/${sample}/fastq.gz ref=/cluster/home/irodriguez/Myers_Lab/20220524_Lexogen_3RNAseq_FWD_Jacob_Brain_sorted_nuclei/custom_analysis/polyA.fa.gz,/cluster/home/irodriguez/Myers_Lab/20220524_Lexogen_3RNAseq_FWD_Jacob_Brain_sorted_nuclei/custom_analysis/truseq.fa.gz k=13 ktrim=r useshortkmers=t mink=5 qtrim=t trimq=10 minlength=20 out=${fastq_trimmed}/${sample}/fastq.gz 
+bbduk.sh in=${fastq_extracted}/${sample}/fastq.gz ref=~/polyA.fa.gz,~/truseq.fa.gz k=13 ktrim=r useshortkmers=t mink=5 qtrim=t trimq=10 minlength=20 out=${fastq_trimmed}/${sample}/fastq.gz 
 
 
 # alignment
@@ -2074,57 +2074,57 @@ htseq-count -m intersection-nonempty -s yes -f bam -r pos -t gene ${alignment_de
 </code></pre>
 <pre class="bash"><code>#batch1
 cd MAPT_230213_7136-NC-0004/
-ls /cluster/home/aanderson/demuxed/RNA_230213/batch1/H* &gt; samples.csv
-awk &#39;gsub(&quot;/cluster/home/aanderson/demuxed/RNA_230213/batch1&quot;,&quot;&quot;)1&#39; samples.csv &gt;tmp
+ls /~demuxed/RNA_230213/batch1/H* &gt; samples.csv
+awk &#39;gsub(&quot;/~demuxed/RNA_230213/batch1&quot;,&quot;&quot;)1&#39; samples.csv &gt;tmp
 awk &#39;gsub(&quot;.fastq.gz&quot;,&quot;&quot;)1&#39; tmp &gt; samples.csv
 
-/cluster/home/aanderson/myers/scripts/conductQuantseq_analysis.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch1 -s samples.csv -t 18
+/~/scripts/conductQuantseq_analysis.sh -a /~/scripts/QuantSeq_htseq.sh -g /~/quantseq/pool/STAR/genes.gtf -d /~/quantseq/pool/STAR/ --rawR1 /~demuxed/RNA_230213/batch1 -s samples.csv -t 18
 
-../MAPT_230213_7136-NC-0007//aggr_counts.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch1/ -s samples.csv -t 18
+../MAPT_230213_7136-NC-0007//aggr_counts.sh -a /~/scripts/QuantSeq_htseq.sh -g /~/quantseq/pool/STAR/genes.gtf -d /~/quantseq/pool/STAR/ --rawR1 /~demuxed/RNA_230213/batch1/ -s samples.csv -t 18
 
 sed -e &#39;s:/::g&#39; summary_all.tsv &gt; summary.tsv</code></pre>
 <pre class="bash"><code>#batch2
 cd ../MAPT_230213_7136-NC-0005/
-ls /cluster/home/aanderson/demuxed/RNA_230213/batch2/H* &gt; samples.csv
-awk &#39;gsub(&quot;/cluster/home/aanderson/demuxed/RNA_230213/batch2&quot;,&quot;&quot;)1&#39; samples.csv &gt;tmp
+ls /~demuxed/RNA_230213/batch2/H* &gt; samples.csv
+awk &#39;gsub(&quot;/~demuxed/RNA_230213/batch2&quot;,&quot;&quot;)1&#39; samples.csv &gt;tmp
 awk &#39;gsub(&quot;.fastq.gz&quot;,&quot;&quot;)1&#39; tmp &gt; samples.csv
 
-/cluster/home/aanderson/myers/scripts/conductQuantseq_analysis.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch2 -s samples_2.csv -t 24
+/~/scripts/conductQuantseq_analysis.sh -a /~/scripts/QuantSeq_htseq.sh -g /~/quantseq/pool/STAR/genes.gtf -d /~/quantseq/pool/STAR/ --rawR1 /~demuxed/RNA_230213/batch2 -s samples_2.csv -t 24
 
-../MAPT_230213_7136-NC-0007/aggr_counts.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch2/ -s samples_2.csv -t 18
+../MAPT_230213_7136-NC-0007/aggr_counts.sh -a /~/scripts/QuantSeq_htseq.sh -g /~/quantseq/pool/STAR/genes.gtf -d /~/quantseq/pool/STAR/ --rawR1 /~demuxed/RNA_230213/batch2/ -s samples_2.csv -t 18
 
 #reran and pulled 77,79,80 from firsr run</code></pre>
 <pre class="bash"><code>#batch3
 cd ../MAPT_230213_7136-NC-0006/
-ls /cluster/home/aanderson/demuxed/RNA_230213/batch3/H* &gt; samples.csv
-awk &#39;gsub(&quot;/cluster/home/aanderson/demuxed/RNA_230213/batch3&quot;,&quot;&quot;)1&#39; samples.csv &gt;tmp
+ls /~demuxed/RNA_230213/batch3/H* &gt; samples.csv
+awk &#39;gsub(&quot;/~demuxed/RNA_230213/batch3&quot;,&quot;&quot;)1&#39; samples.csv &gt;tmp
 awk &#39;gsub(&quot;.fastq.gz&quot;,&quot;&quot;)1&#39; tmp &gt; samples.csv
 
-/cluster/home/aanderson/myers/scripts/conductQuantseq_analysis.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch3 -s samples.csv -t 18
+/~/scripts/conductQuantseq_analysis.sh -a /~/scripts/QuantSeq_htseq.sh -g /~/quantseq/pool/STAR/genes.gtf -d /~/quantseq/pool/STAR/ --rawR1 /~demuxed/RNA_230213/batch3 -s samples.csv -t 18
 
-../MAPT_230213_7136-NC-0007//aggr_counts.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch3/ -s samples.csv -t 18</code></pre>
+../MAPT_230213_7136-NC-0007//aggr_counts.sh -a /~/scripts/QuantSeq_htseq.sh -g /~/quantseq/pool/STAR/genes.gtf -d /~/quantseq/pool/STAR/ --rawR1 /~demuxed/RNA_230213/batch3/ -s samples.csv -t 18</code></pre>
 <pre class="bash"><code>
 #batch 4
 cd MAPT_230213_7136-NC-0007/
-ls /cluster/home/aanderson/demuxed/RNA_230213/H* &gt; samples.csv
-awk &#39;gsub(&quot;/cluster/home/aanderson/demuxed/RNA_230213/&quot;,&quot;&quot;)1&#39; samples.csv &gt;tmp
+ls /~demuxed/RNA_230213/H* &gt; samples.csv
+awk &#39;gsub(&quot;/~demuxed/RNA_230213/&quot;,&quot;&quot;)1&#39; samples.csv &gt;tmp
 awk &#39;gsub(&quot;.fastq.gz&quot;,&quot;&quot;)1&#39; tmp &gt; samples.csv
 
-/cluster/home/aanderson/myers/scripts/conductQuantseq_analysis.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch4 -s samples.csv -t 18
+/~/scripts/conductQuantseq_analysis.sh -a /~/scripts/QuantSeq_htseq.sh -g /~/quantseq/pool/STAR/genes.gtf -d /~/quantseq/pool/STAR/ --rawR1 /~demuxed/RNA_230213/batch4 -s samples.csv -t 18
 
 
-./aggr_counts.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch4/ -s samples.csv -t 18
+./aggr_counts.sh -a /~/scripts/QuantSeq_htseq.sh -g /~/quantseq/pool/STAR/genes.gtf -d /~/quantseq/pool/STAR/ --rawR1 /~demuxed/RNA_230213/batch4/ -s samples.csv -t 18
 </code></pre>
 <pre class="bash"><code># batch5
 cd MAPT_230217_7136-NC-0008/
-ls /cluster/home/aanderson/demuxed/RNA_230217/H* &gt; samples.csv
-awk &#39;gsub(&quot;/cluster/home/aanderson/demuxed/RNA_230217/&quot;,&quot;&quot;)1&#39; samples.csv &gt;tmp
+ls /~demuxed/RNA_230217/H* &gt; samples.csv
+awk &#39;gsub(&quot;/~demuxed/RNA_230217/&quot;,&quot;&quot;)1&#39; samples.csv &gt;tmp
 awk &#39;gsub(&quot;.fastq.gz&quot;,&quot;&quot;)1&#39; tmp &gt; samples.csv
 
-/cluster/home/aanderson/myers/scripts/conductQuantseq_analysis.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230217/ -s samples.csv -t 18
+/~/scripts/conductQuantseq_analysis.sh -a /~/scripts/QuantSeq_htseq.sh -g /~/quantseq/pool/STAR/genes.gtf -d /~/quantseq/pool/STAR/ --rawR1 /~demuxed/RNA_230217/ -s samples.csv -t 18
 
 
-../MAPT_230213_7136-NC-0007/aggr_counts.sh -a /cluster/home/aanderson/myers/scripts/QuantSeq_htseq.sh -g /cluster/home/aanderson/myers/quantseq/pool/STAR/genes.gtf -d /cluster/home/aanderson/myers/quantseq/pool/STAR/ --rawR1 /cluster/home/aanderson/demuxed/RNA_230213/batch4/ -s samples.csv -t 18
+../MAPT_230213_7136-NC-0007/aggr_counts.sh -a /~/scripts/QuantSeq_htseq.sh -g /~/quantseq/pool/STAR/genes.gtf -d /~/quantseq/pool/STAR/ --rawR1 /~demuxed/RNA_230213/batch4/ -s samples.csv -t 18
 </code></pre>
 </div>
 <div id="format-meta-data" class="section level2">
@@ -2205,14 +2205,14 @@ write.csv(All_meta, &quot;~/Documents/MAPT_project/RNAseq_meta/All_meta.csv&quot
 </div>
 <div id="analysis" class="section level2">
 <h2>ANALYSIS</h2>
-<pre class="r"><code>counts1&lt;-read.table(&quot;/cluster/home/aanderson/myers/quantseq/redo_MAPT_230213_7136-NC-0004/summary_all.tsv&quot;, sep=&quot;\t&quot;, header=T)
-counts2&lt;-read.table(&quot;/cluster/home/aanderson/myers/quantseq/redo_MAPT_230213_7136-NC-0005/summary_all.tsv&quot;, sep=&quot;\t&quot;, header=T)
-counts3&lt;-read.table(&quot;/cluster/home/aanderson/myers/quantseq/MAPT_230213_7136-NC-0006/summary_all.tsv&quot;, header=T)
-counts4&lt;-read.table(&quot;/cluster/home/aanderson/myers/quantseq/MAPT_230213_7136-NC-0007/summary_all.tsv&quot;, header=T)
-counts5&lt;-read.table(&quot;/cluster/home/aanderson/myers/quantseq/MAPT_230217_7136-NC-0008/summary_all.tsv&quot;, header=T)
+<pre class="r"><code>counts1&lt;-read.table(&quot;/~/quantseq/redo_MAPT_230213_7136-NC-0004/summary_all.tsv&quot;, sep=&quot;\t&quot;, header=T)
+counts2&lt;-read.table(&quot;/~/quantseq/redo_MAPT_230213_7136-NC-0005/summary_all.tsv&quot;, sep=&quot;\t&quot;, header=T)
+counts3&lt;-read.table(&quot;/~/quantseq/MAPT_230213_7136-NC-0006/summary_all.tsv&quot;, header=T)
+counts4&lt;-read.table(&quot;/~/quantseq/MAPT_230213_7136-NC-0007/summary_all.tsv&quot;, header=T)
+counts5&lt;-read.table(&quot;/~/quantseq/MAPT_230217_7136-NC-0008/summary_all.tsv&quot;, header=T)
 
 
-All_meta&lt;-read.csv(&quot;~/myers/MAPT_project/RNAseq/All_meta.csv&quot;)
+All_meta&lt;-read.csv(&quot;~/MAPT_project/RNAseq/All_meta.csv&quot;)
 All_meta$batch&lt;-sapply(strsplit(All_meta$Library_name,&quot;_&quot;, fixed=T),`[`,1)
 All_meta$batch&lt;-gsub(&quot;7136-NC-&quot;,&quot;&quot;, All_meta$batch)
 All_meta$Library_name&lt;-gsub(&quot;-&quot;,&quot;.&quot;, All_meta$Library_name)
@@ -2223,7 +2223,7 @@ All_meta$Target.Region&lt;-ifelse(All_meta$Target.Region %in% c(&quot;Safe harbo
 #format counts table so that rownames are gene names
 ALL_counts&lt;-cbind(counts1, counts2[,-1],counts3[,-1], counts4[,-1], counts5[,-1])
 colnames(ALL_counts)&lt;-gsub(&quot;X.&quot;,&quot;&quot;, colnames(ALL_counts))
-gtf&lt;-rtracklayer::import(&quot;~/myers/scAnalysis/genes.gtf&quot;)
+gtf&lt;-rtracklayer::import(&quot;~/genes.gtf&quot;)
 gtf&lt;-gtf[which(gtf$type==&quot;gene&quot;),]
 conversion&lt;-as.data.frame(gtf)[c(10,13)]
 ALL_counts&lt;-merge(ALL_counts,conversion,by.x=&quot;id&quot;,by.y=&quot;gene_id&quot;)
@@ -2249,11 +2249,11 @@ tmp&lt;-aggregate(MAPT~TR, df, mean)
 df&lt;-df[!(df$TR %in% c(&quot;GFP&quot;,&quot;SH&quot;)),]
 df$log2FC&lt;-log2(df$MAPT/tmp[which(tmp$TR==&quot;SH&quot;),]$MAPT)
 df$DistTSS&lt;-factor(df$DistTSS, levels=unique(sort(as.numeric(df$DistTSS))))
-pdf(&quot;~/myers/scAnalysis/plots/MAPT_RNAseq_MAPT.pdf&quot;, width=16, height=6)
+pdf(&quot;~/plots/MAPT_RNAseq_MAPT.pdf&quot;, width=16, height=6)
 ggplot(df[which(df$TR!=&quot;SH&quot;),], aes(x=DistTSS,y=log2FC))+geom_boxplot(fill=&quot;darkslategray2&quot;)+theme_classic()+theme(axis.text.x=element_text(angle=90))+geom_hline(yintercept=0)+xlab(&quot;Distance to MAPT promoter (bp)&quot;)
 dev.off()
 
-pdf(&quot;~/myers/scAnalysis/plots/MAPT_RNAseq_AAVS_dist.pdf&quot;)
+pdf(&quot;~/plots/MAPT_RNAseq_AAVS_dist.pdf&quot;)
 df&lt;-data.frame(MAPT=as.numeric(CPM[&quot;MAPT&quot;,]), DistTSS=All_meta$DistTSS, TR=All_meta$Target_Region, LN=All_meta$Library_name)
 df&lt;-df[which(df$TR==&quot;SH&quot;),]
 ggplot(df, aes(x=1, y=MAPT))+geom_boxplot()+geom_jitter()+theme_classic()+geom_text_repel(aes(label=LN))
@@ -2278,7 +2278,7 @@ mapt$MAPT_CPM&lt;-mapt@assays$RNA@data[&quot;MAPT&quot;,]
 md&lt;-mapt@meta.data
 md$Control&lt;-grepl(&quot;SH&quot;, md$Target.Region)
 md.m&lt;-melt(md)
-pdf(&quot;~/myers/scAnalysis/plots/MAPT_QC.pdf&quot;)
+pdf(&quot;~/plots/MAPT_QC.pdf&quot;)
 ggplot(md, aes(x=log10(MAPT_CPM), y=nCount_RNA, color=batch, shape=Control))+geom_point()+geom_text_repel(aes(label=Library_name))+theme_classic()
 ggplot(md, aes(x=MAPT_CPM, y=nCount_RNA, color=batch, shape=Control))+geom_point()+geom_text_repel(aes(label=Library_name))+theme_classic()
 ggplot(md.m[!(md.m$variable %in% c(&quot;Sample&quot;,&quot;DistTSS&quot;,&quot;X&quot;)),], aes(y=value, x=variable))+geom_boxplot()+facet_wrap(~variable, scales=&quot;free&quot;)
@@ -2289,7 +2289,7 @@ dev.off()
 
 mapt&lt;-ScaleData(mapt)
 mapt&lt;-RunPCA(mapt, features=rownames(mapt))
-pdf(&quot;~/myers/scAnalysis/plots/MAPT_PCA.pdf&quot;)
+pdf(&quot;~/plots/MAPT_PCA.pdf&quot;)
 DimPlot(mapt, group.by=&quot;batch&quot;, dims=1:2)+DimPlot(mapt, group.by=&quot;batch&quot;, dims=3:4)
 DimHeatmap(mapt, dims=1, balanced=T)
 dev.off()
@@ -2304,7 +2304,7 @@ mapt&lt;-AddModuleScore(mapt, features=list(c(&quot;CACNA1C&quot;,&quot;ENO2&quo
 mapt&lt;-AddModuleScore(mapt, features=list(c(&quot;AQP4&quot;,&quot;SLC1A3&quot;)), name=&quot;Ast_score&quot;)
 mapt$Ast&lt;-mapt@assays$RNA@data[&quot;AQP4&quot;,]
 
-pdf(&quot;~/myers/scAnalysis/plots/MAPT_PCA_Differentiation_scoree.pdf&quot;)
+pdf(&quot;~/plots/MAPT_PCA_Differentiation_scoree.pdf&quot;)
 FeaturePlot(mapt, features=c(&quot;Immature_score1&quot;, &quot;Mature_score1&quot;))
 ggplot(mapt@meta.data, aes(x=Mature_score1, y=MAPT_CPM))+geom_point()+theme_classic()
 dev.off()</code></pre>
@@ -2329,7 +2329,7 @@ mat&lt;-mat[,!grepl(&quot;AC&quot;, colnames(mat))]
 split&lt;-c(rep(&quot;A&quot;,10),&quot;B&quot;,rep(&quot;C&quot;, 5))
 ra1&lt;-rowAnnotation( DistTSS=as.numeric(as.character(dists)), col=list( DistTSS=colorRamp2(c(-1000000,0,1000000), c(&quot;darkorange&quot;,&quot;white&quot;,&quot;darkmagenta&quot;)))) 
 
-pdf(&quot;~/myers/scAnalysis/plots/1Mb_region_aroundMAPT_dirP_HEATMAP.pdf&quot;, width=5, height=9)
+pdf(&quot;~/plots/1Mb_region_aroundMAPT_dirP_HEATMAP.pdf&quot;, width=5, height=9)
 Heatmap(mat* -1, column_split=split , rect_gp = gpar(col = &quot;grey80&quot;, lwd = 2), cluster_rows=F, cluster_columns=F,col=colorRamp2(c(-3, -1.3,-1.28,0,1.28,1.3, 3),  c(&quot;darkblue&quot;, &quot;blue&quot;,&quot;white&quot;,&quot;white&quot;,&quot;white&quot;,&quot;red&quot;, &quot;darkred&quot;)), right_annotation=ra1, name=&quot;Directional p-value&quot;, column_names_gp = gpar(fontsize = 6), row_names_side = &quot;left&quot;, column_title=NULL)
 dev.off()</code></pre>
 </div>
@@ -2360,13 +2360,13 @@ regions&lt;-Bed_PeakPlot(unique(sig_regions), region=region)&amp;scale_x_continu
 gene_plot&lt;-AnnotationPlot(xcl4, region=region)
 
 p&lt;-CombineTracks(plotlist=list(gene_plot, regions), heights=c(4,1))
-pdf(&quot;~/myers/scAnalysis/plots/Sig_regions_geneTrack.pdf&quot;, width=10, height=6)
+pdf(&quot;~/plots/Sig_regions_geneTrack.pdf&quot;, width=10, height=6)
 p
 dev.off()</code></pre>
 <p>What are all of the nomination methods for the significant regions</p>
 <pre class="r"><code>#format all Noms
-mapt&lt;-GRanges(read.csv(&quot;~/myers/scAnalysis/MAPT_links/MAPT_1Mb_links.csv&quot;))
-xcl4_links&lt;-readRDS(&quot;~/myers/scAnalysis/NPC_multi/210330_links_aggr.rds&quot;)
+mapt&lt;-GRanges(read.csv(&quot;~/MAPT_links/MAPT_1Mb_links.csv&quot;))
+xcl4_links&lt;-readRDS(&quot;~/NPC_multi/210330_links_aggr.rds&quot;)
 xcl4_mapt&lt;-xcl4_links[which(xcl4_links$gene==&quot;MAPT&quot;),]
 HiC.pairs2&lt;-HiC.pairs[c(&quot;5193&quot;,&quot;5300&quot;),]
 
@@ -2399,7 +2399,7 @@ all_sig&lt;-c(sig1,sig2)
 
 mat&lt;-as.data.frame(as.matrix(table(all_sig$Nom, all_sig$DistTSS)))
 mat$Var1&lt;-factor(mat$Var1, levels=rev(mat$Var1[1:6]))
-pdf(&quot;~/myers/scAnalysis/plots/Sig_regions_nomination_method.pdf&quot;, width=6, height=3)
+pdf(&quot;~/plots/Sig_regions_nomination_method.pdf&quot;, width=6, height=3)
 ggplot(mat, aes(y=Var1, x=Var2, alpha=as.factor(Freq)))+geom_point(size=3)+theme_bw()+xlab(&quot;&quot;)+ylab(&quot;Nomination Method&quot;)+scale_alpha_discrete(range=c(0,1))+theme(legend.position=&quot;none&quot;, axis.text.x=element_text(angle=45, vjust=0.9, hjust=0.9))
 dev.off()
 
@@ -2414,7 +2414,7 @@ rep$NS&lt;-rep$All-rep$sig
 rep&lt;-melt(rep[,-2])
 rep$Var1&lt;-factor(rep$Var1, levels=rev(rep$Var1[1:6]))
 
-pdf(&quot;~/myers/scAnalysis/plots/Number_sig_regions_by_Nomination.pdf&quot;, width=4, height=5)
+pdf(&quot;~/plots/Number_sig_regions_by_Nomination.pdf&quot;, width=4, height=5)
 ggplot(rep, aes(y=Var1,x=value, fill=variable))+geom_bar(color=&quot;black&quot;,stat=&quot;identity&quot;, position=&quot;dodge&quot;)+scale_fill_manual(values=c(&quot;darkslategray2&quot;, &quot;grey60&quot;), name=&quot;&quot;)+theme_classic()+ylab(&quot;Nomination Method&quot;)+xlab(&quot;count&quot;)
 dev.off()
 
@@ -2426,7 +2426,7 @@ rep$propNS&lt;-rep$NS/rep$All
 rep&lt;-melt(rep[,c(1,5,6)] )
 rep$Var1&lt;-factor(rep$Var1, levels=rev(rep$Var1[1:6]))
 
-pdf(&quot;~/myers/scAnalysis/plots/Proportion_sig_regions_by_Nomination.pdf&quot;, width=4, height=5)
+pdf(&quot;~/plots/Proportion_sig_regions_by_Nomination.pdf&quot;, width=4, height=5)
 ggplot(rep, aes(y=Var1,x=value, fill=variable))+geom_bar(color=&quot;black&quot;,stat=&quot;identity&quot;, position=&quot;stack&quot;)+scale_fill_manual(values=c(&quot;darkslategray2&quot;, &quot;grey60&quot;), name=&quot;&quot;)+theme_classic()+ylab(&quot;Nomination Method&quot;)+xlab(&quot;count&quot;)
 dev.off()</code></pre>
 <div id="which-links" class="section level3">
@@ -2438,7 +2438,7 @@ mapt[queryHits(o)]$sig&lt;-T
 
 
 mapt.df&lt;-as.data.frame(mapt)
-pdf(&quot;~/myers/scAnalysis/plots/AD_link_sig_vs_notsig_regions.pdf&quot;, width=6, height=4)
+pdf(&quot;~/plots/AD_link_sig_vs_notsig_regions.pdf&quot;, width=6, height=4)
 p1&lt;-ggplot(mapt.df, aes(x=sig, y=abs(score.x), fill=sig))+geom_boxplot()+ stat_compare_means(method = &quot;t.test&quot;)+theme_classic()+theme(legend.position=&quot;none&quot;)+ylab(&quot;abs(score)&quot;)+xlab(&quot;KD MAPT&quot;)
 p2&lt;-ggplot(mapt.df, aes(x=sig, y=qval.x, fill=sig))+geom_boxplot()+ stat_compare_means(method = &quot;t.test&quot;)+theme_classic()+ylab(&quot;-log10(q-value)&quot;)+xlab(&quot;KD MAPT&quot;)+theme(legend.position=&quot;none&quot;)
 p1+p2
@@ -2472,7 +2472,7 @@ prop.table(table(Noms_reduce$sig, Noms_reduce$encodeLabel),2)</code></pre>
 <div id="qpcr" class="section level2">
 <h2>qPCR</h2>
 <pre class="r"><code># qPCR
-qpcr&lt;-read.csv(&quot;~/myers/MAPT_project/AllKRAB_AvgProbe_11262022.csv&quot;, na.strings=&quot;&quot;)
+qpcr&lt;-read.csv(&quot;~/MAPT_project/AllKRAB_AvgProbe_11262022.csv&quot;, na.strings=&quot;&quot;)
 cn&lt;-qpcr[1,]
 qpcr&lt;-qpcr[-1,]
 colnames(qpcr)[1:2]&lt;-c(&quot;Expt&quot;,&quot;control&quot;)
@@ -2484,7 +2484,7 @@ qpcr$Expt&lt;-gsub(&quot; &quot;, &quot;&quot;, qpcr$Expt)
 colnames(qpcr)[2]&lt;-&quot;DistTSS&quot;
 
 #RNA
-All_meta&lt;-read.csv(&quot;~/myers/MAPT_project/RNAseq/All_meta.csv&quot;)
+All_meta&lt;-read.csv(&quot;~/MAPT_project/RNAseq/All_meta.csv&quot;)
 All_meta$batch&lt;-sapply(strsplit(All_meta$Library_name,&quot;_&quot;, fixed=T),`[`,1)
 All_meta$batch&lt;-gsub(&quot;7136-NC-&quot;,&quot;&quot;, All_meta$batch)
 All_meta$Library_name&lt;-gsub(&quot;-&quot;,&quot;.&quot;, All_meta$Library_name)
@@ -2514,7 +2514,7 @@ agg=aggregate(MAPT~DistTSS, both, mean)
 both$FC&lt;-both$MAPT/agg[which(agg$DistTSS==&quot;control&quot;),]$MAPT
 sum(sign(log2(both$value))==sign(log2(both$FC)))/nrow(both)
 
-pdf(&quot;~/myers/scAnalysis/plots/qPCR_v_RNAseq_MAPT.pdf&quot;)
+pdf(&quot;~/plots/qPCR_v_RNAseq_MAPT.pdf&quot;)
 ggplot(both, aes(x=value, y=FC, color=Expt))+geom_point()+geom_text_repel(aes(label=DistTSS))+theme_classic()+xlab(&quot;qPCR&quot;)+ylab(&quot;MAPT CPM&quot;)+geom_hline(yintercept=1, linetype=&quot;dashed&quot;)+geom_vline(xintercept=1, linetype=&quot;dashed&quot;)+ylim(0,5)+xlim(0,3)
 ggplot(both, aes(x=log10(value), y=log10(MAPT), color=Expt))+geom_point()+geom_text_repel(aes(label=DistTSS))+theme_classic()+xlab(&quot;log10(qPCR)&quot;)+ylab(&quot;log10(MAPT CPM)&quot;)
 ggplot(both, aes(x=Expt, y=value))+geom_boxplot()+theme_classic()
@@ -2544,9 +2544,9 @@ luc_pos$start&lt;-gsub(&quot;_F&quot;,&quot;&quot;, luc_pos$start)
 luc_pos$end&lt;-as.numeric(luc_pos$start)+468
 luc_pos&lt;-GRanges(luc_pos[-c(2,5),])
 
-p1&lt;-BigwigTrack(region,&quot;~/myers/MAPT_project/ChIPseq/croo_output/H3K27ac_KOLF2.1J_Neuron/signal/pooled-rep/basename_prefix.pooled_x_basename_prefix.pooled.fc.signal.bigwig&quot;,smooth=50)&amp;scale_fill_manual(values=&quot;forestgreen&quot;)&amp;ylab(&quot;H3K27ac&quot;)&amp;theme(legend.position=&quot;none&quot;,axis.title.y=element_text(angle=0))&amp;ggtitle(paste(dist, &quot;(from MAPT TSS)&quot;))
+p1&lt;-BigwigTrack(region,&quot;~/MAPT_project/ChIPseq/croo_output/H3K27ac_KOLF2.1J_Neuron/signal/pooled-rep/basename_prefix.pooled_x_basename_prefix.pooled.fc.signal.bigwig&quot;,smooth=50)&amp;scale_fill_manual(values=&quot;forestgreen&quot;)&amp;ylab(&quot;H3K27ac&quot;)&amp;theme(legend.position=&quot;none&quot;,axis.title.y=element_text(angle=0))&amp;ggtitle(paste(dist, &quot;(from MAPT TSS)&quot;))
 
-p2&lt;-BigwigTrack(region,&quot;/cluster/home/lrizzardi/data_for_others/221025_KOLF2.1J_ATAC_Bri/cromwell_output/signal/pooled-rep/KOLF2.1J_BrainPhys_25k_Day14_rep.pooled.fc.signal.bigwig&quot;, smooth=50)&amp;scale_fill_manual(values=&quot;cornflowerblue&quot;)&amp;ylab(&quot;ATAC&quot;)&amp;theme(legend.position=&quot;none&quot;,axis.title.y=element_text(angle=0))
+p2&lt;-BigwigTrack(region,&quot;~/221025_KOLF2.1J_ATAC_Bri/cromwell_output/signal/pooled-rep/KOLF2.1J_BrainPhys_25k_Day14_rep.pooled.fc.signal.bigwig&quot;, smooth=50)&amp;scale_fill_manual(values=&quot;cornflowerblue&quot;)&amp;ylab(&quot;ATAC&quot;)&amp;theme(legend.position=&quot;none&quot;,axis.title.y=element_text(angle=0))
 
 g1&lt;-Bed_GWASPlot(grna_pos, region)+ylab(&quot;gRNA pos&quot;)+theme(axis.title.y=element_text(angle=0))&amp;scale_color_manual(values=&quot;darkgoldenrod1&quot;)
 g2&lt;-Bed_PeakPlot(luc_pos, region)+ylab(&quot;Luciferase&quot;)+theme(axis.title.y=element_text(angle=0))&amp;scale_fill_manual(values=&quot;darkorchid&quot;)
@@ -2563,7 +2563,7 @@ gene_plot&lt;-AnnotationPlot(xcl4, region=region)
 
 
 p&lt;-CombineTracks(plotlist=list(p1,p2,g3, g2, g1,n1,n2,n3,n4,n5,n6, gene_plot), heights=c(8,8,1,1, 1,1,1,1,1,1,1,3))
-pdf(paste0(&quot;~/myers/scAnalysis/plots/Region_&quot;, dist,&quot;.pdf&quot;), width=5, height=8)
+pdf(paste0(&quot;~/plots/Region_&quot;, dist,&quot;.pdf&quot;), width=5, height=8)
 p
 dev.off()
 
@@ -2576,7 +2576,7 @@ i=i+1</code></pre>
 <pre class="r"><code>grna_uniq&lt;-unique(grna)
 grna_uniq&lt;-grna
 
- NPC&lt;-read.csv(&quot;~/myers/scAnalysis/lit_search_validation/Weiss_NPC_MPRA.csv&quot;)
+ NPC&lt;-read.csv(&quot;~/lit_search_validation/Weiss_NPC_MPRA.csv&quot;)
 NPC&lt;-NPC[,4:13]
 colnames(NPC)[c(6,7)]&lt;-c(&quot;start&quot;,&quot;end&quot;)
 NPC&lt;-NPC[is.na(NPC$start)==F,]
@@ -2588,7 +2588,7 @@ grna_uniq_sig&lt;-grna_uniq.2[which(grna_uniq.2$mpra_q==&quot;Yes&quot;),]
 grna_uniq$Weiss_NPC&lt;-ifelse(grna_uniq$Design_Region_Start_hg38 %in% grna_uniq_sig$Design_Region_Start_hg38,T,F)
 
 
-ESC&lt;-read.csv(&quot;~/myers/scAnalysis/lit_search_validation/Weiss_ESC_MPRA.csv&quot;)
+ESC&lt;-read.csv(&quot;~/lit_search_validation/Weiss_ESC_MPRA.csv&quot;)
 ESC&lt;-ESC[,4:13]
 colnames(ESC)[c(6,7)]&lt;-c(&quot;start&quot;,&quot;end&quot;)
 ESC&lt;-ESC[is.na(ESC$start)==F,]
@@ -2600,10 +2600,10 @@ grna_uniq_sig&lt;-grna_uniq.2[which(grna_uniq.2$mpra_q==&quot;Yes&quot;),]
 grna_uniq$Weiss_ESC&lt;-ifelse(grna_uniq$Design_Region_Start_hg38 %in% grna_uniq_sig$Design_Region_Start_hg38,T,F)
 
 
-uebbing&lt;-read.csv(&quot;~/myers/scAnalysis/lit_search_validation/Uebbing_NPC_MPRA.csv&quot;)
+uebbing&lt;-read.csv(&quot;~/lit_search_validation/Uebbing_NPC_MPRA.csv&quot;)
 uebbing&lt;-uebbing[,1:20]
 uebbing&lt;-GRanges(uebbing)
-ch&lt;-import.chain(&quot;~/myers/liftover/hg19ToHg38.over.chain&quot;)
+ch&lt;-import.chain(&quot;~/liftover/hg19ToHg38.over.chain&quot;)
 uebbing38&lt;-liftOver(uebbing, ch)
 uebbing&lt;-unlist(uebbing38)  #lost 7
 olap&lt;-findOverlaps(unique(grna_uniq), uebbing)
@@ -2619,7 +2619,7 @@ sure&lt;-sure[-1,]
 colnames(sure)[3]&lt;-&quot;start&quot;
 sure$end&lt;-as.numeric(sure$start)+1
 sure&lt;-GRanges(sure)
-ch&lt;-import.chain(&quot;~/myers/liftover/hg19ToHg38.over.chain&quot;)
+ch&lt;-import.chain(&quot;~/liftover/hg19ToHg38.over.chain&quot;)
 sure38&lt;-liftOver(sure, ch)
 sure&lt;-unlist(sure38)  #lost 7
 sure$sig&lt;-sure$k562.wilcox.p.value &lt;0.01 
@@ -2635,11 +2635,11 @@ grna_uniq.2&lt;-grna_uniq[queryHits(olap)]
 grna_uniq$SuRE_HePG2&lt;-ifelse(grna_uniq$Design_Region_Start_hg38 %in% grna_uniq.2$Design_Region_Start_hg38,T,F)
 
 
-mpra&lt;-read.csv(&quot;~/myers/scAnalysis/lit_search_validation/Full_Cooper_MPRA_sumStats.csv&quot;)
+mpra&lt;-read.csv(&quot;~/lit_search_validation/Full_Cooper_MPRA_sumStats.csv&quot;)
 mpra$start&lt;-mpra$pos
 mpra$end&lt;-mpra$start+1
 mpra&lt;-GRanges(mpra)
-ch&lt;-import.chain(&quot;~/myers/liftover/hg19ToHg38.over.chain&quot;)
+ch&lt;-import.chain(&quot;~/liftover/hg19ToHg38.over.chain&quot;)
 mpra&lt;-liftOver(mpra, ch)
 mpra&lt;-unlist(mpra)  
 olap&lt;-findOverlaps(unique(grna_uniq), mpra)
@@ -2657,7 +2657,7 @@ t2&lt;-grna_uniq[which(grna_uniq$SuRE_K562==T),1]</code></pre>
 </div>
 <div id="crispr" class="section level2">
 <h2>CRISPR</h2>
-<pre class="r"><code>crispr&lt;-read.csv(&quot;~/myers/scAnalysis/lit_search_validation/Cooper_CRISPR_validated.csv&quot;)
+<pre class="r"><code>crispr&lt;-read.csv(&quot;~/lit_search_validation/Cooper_CRISPR_validated.csv&quot;)
 
 
 library(SNPlocs.Hsapiens.dbSNP151.GRCh38)
@@ -2683,7 +2683,7 @@ grna_uniq[subjectHits(olap)]$CooperCRISPR_ID&lt;-loc[queryHits(olap)]$ID</code><
 </div>
 <div id="hichip" class="section level2">
 <h2>HiChIP</h2>
-<pre class="r"><code>files=as.list(readLines(&quot;/cluster/home/aanderson/myers/scAnalysis/Corces_HiChIP/files.txt&quot;))
+<pre class="r"><code>files=as.list(readLines(&quot;/~Corces_HiChIP/files.txt&quot;))
 n=sapply(strsplit(unlist(files),&quot;[/]&quot;),&quot;[[&quot;,8)
 n2=sapply(strsplit(n,&quot;[_]&quot;),&quot;[[&quot;,1)
 HiChIP_list=lapply(files,function(x){
@@ -2709,7 +2709,7 @@ MAPT_HiChIP&lt;-unique(GRanges(rbind(tmp1,tmp2)))
 over&lt;-findOverlaps(grna_uniq, MAPT_HiChIP)
 grna_uniq$HiChIP_q&lt;-1
 grna_uniq[queryHits(over)]$HiChIP_q&lt;-MAPT_HiChIP[subjectHits(over)]$Q.Value_Bias
-saveRDS(MAPT_HiChIP, &quot;~/myers/scAnalysis/Corces_HiChIP/MAPT_loops.rds&quot;)
+saveRDS(MAPT_HiChIP, &quot;~/Corces_HiChIP/MAPT_loops.rds&quot;)
 
 grna_uniq$Corces_HiChIP&lt;-grna_uniq$HiChIP_q&lt;0.01
 write.csv(grna_uniq, &quot;~?myers&quot;)</code></pre>

@@ -2,7 +2,7 @@
 
 
 
-### To view a vignette of all analyses click [here](https://aanderson54.github.io/MAPT_cre/)
+### To view all analyses click [here](https://aanderson54.github.io/MAPT_cre/)
 
 <br />
 <br />

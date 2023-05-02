@@ -12,7 +12,7 @@ output:
 
 
 
-# single cell
+# Single Cell
 
 
 
@@ -580,7 +580,7 @@ dev.off()
 
 ```
 
-#### enrichments
+#### Enrichments
 ```{r,eval=F}
 enc.rs<-enc.rs[order(enc.rs$encodeLabel, decreasing=T),]
 enc.rs<-resize(enc.rs, fix="center", width=500)
@@ -1489,7 +1489,7 @@ dev.off()
 ```
 
 
-##  differential CapC (B)
+##  Differential CapC (B)
 
 Knight-Ruitz normalized counts were pulled from the hic file for each replicate for Gluta and GABA capture-C at a resolution of 5kb and merged by contact positions. Counts that were not connected to the MAPT promoter were removed from the count matrix. Differential regions were tested using DESeq2 for 5kb bins. Neuron and NPC capture-C were processed using capC-MAP69 with the target set at the MAPT Promoter (chr17:45892837-45895177) and the restriction enzyme set as DpnII. Contact counts were taken from capC-MAP output at a step size of 500bp and window size of 1kb. Differential regions were tested using DESeq2 with cell line as a covariate. For both analyses, significant regions were defined as those with an adjusted p-value < 0.01. DESeq2 results were formatted as a bigwig for plotting using the directional p-value (-log10(adjusted p-value) * sign(log2FC)).
 
